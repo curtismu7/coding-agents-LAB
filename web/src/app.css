@@ -85,6 +85,7 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .pat-canvas { height: 580px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
 .pat-canvas .react-flow { --xy-background-color-default: var(--surface); --xy-edge-stroke-default: var(--muted); --xy-edge-label-background-color-default: var(--surface); --xy-edge-label-color-default: var(--text); --xy-controls-button-background-color-default: var(--surface); --xy-controls-button-color-default: var(--text); --xy-controls-button-border-color-default: var(--border); --xy-controls-button-background-color-hover-default: var(--surface-2); --xy-background-pattern-dots-color-default: var(--border); }
 .pat-canvas .react-flow__controls { box-shadow: none; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.pat-canvas .react-flow__controls-button { border: 1px solid var(--border); background: var(--surface); color: var(--text); }
 .pat-canvas .react-flow__controls-button svg { fill: currentcolor; }
 .pat-canvas .react-flow__arrowhead polyline { stroke: var(--muted); fill: var(--muted); }
 .pat-node { padding: 12px 14px; min-width: 110px; max-width: 200px; text-align: center; font-size: 13px; font-weight: 700; color: var(--on-box); background: var(--box-dark); border: 2px solid var(--border); border-radius: 8px; }
@@ -101,4 +102,4 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .pat-elabel[data-now="true"] { border-color: var(--focus); font-weight: 700; }
 .pat-elabel[data-dim="true"] { opacity: 0.55; }
 @media (max-width: 900px) { .pat-canvas { height: 520px; } }
-@media (max-width: 600px) { .head__title { font-size: 18px; } .pat-canvas { height: 560px; } .panel { padding: 10px; } }
+@media (max-width: 600px) { .pat-node { font-size: 15px; } .pat-elabel { font-size: 15px; } .head__title { font-size: 18px; } .pat-canvas { height: 560px; } .panel { padding: 10px; } }

@@ -6,7 +6,7 @@ import { REFIT_EVENT, useFitOnResize } from "../hooks/useFitOnResize";
 import { ClaimTag } from "./Bits";
 
 const FIT = { padding: 0.08 };
-// At phone width fitting the whole wide diagram makes the text unreadable, so the view is held at 0.6 and centred on the first box;
+// At phone width fitting the whole wide diagram makes the text unreadable, so the view is held at 0.8 on the first two boxes (node text is enlarged in app.css);
 // drag the canvas to pan, drag a box to move it.
 const narrow = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(max-width: 600px)").matches;
 const HANDLES = [["t", Position.Top], ["b", Position.Bottom], ["l", Position.Left], ["r", Position.Right]];
@@ -57,7 +57,7 @@ function sides(a, b) {
 
 function Canvas({ pattern, positions, onMove, stepper }) {
   const ref = useRef(null);
-  const fit = useMemo(() => (narrow() ? { padding: 0.2, minZoom: 0.6, maxZoom: 0.6, nodes: [{ id: pattern.nodes[0].id }] } : FIT), [pattern]);
+  const fit = useMemo(() => (narrow() ? { padding: 0.1, minZoom: 0.8, maxZoom: 0.8, nodes: pattern.nodes.slice(0, 2).map((n) => ({ id: n.id })) } : FIT), [pattern]);
   useFitOnResize(ref, fit);
   const active = stepper.step >= 0 ? pattern.steps[stepper.step] : null;
   const nodes = pattern.nodes.map((n) => ({
