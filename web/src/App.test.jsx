@@ -149,8 +149,8 @@ describe("evaluate tab, Mock", () => {
     await click("sc-shell-chain");
     await waitFor(() => expect(screen.getByTestId("verdict-word")).toHaveTextContent("ALERT"), T);
     expect(screen.getByTestId("dialog")).toHaveAttribute("data-state", "proceeds");
-    await waitFor(() => expect(within(screen.getByTestId("audit")).getAllByText("LT-4821").length).toBeGreaterThan(0), T);
-    expect(within(screen.getByTestId("audit")).getByText("ALERT-SHELL-CHAIN-EXFIL")).toBeInTheDocument();
+    await waitFor(() => expect(within(screen.getByTestId("audit")).getByText("ALERT-SHELL-CHAIN-EXFIL")).toBeInTheDocument(), T);
+    expect(within(screen.getByTestId("audit")).getAllByText("LT-4821").length).toBeGreaterThan(0);
   }, 60000);
 
   it("your own action needs Live", async () => {
