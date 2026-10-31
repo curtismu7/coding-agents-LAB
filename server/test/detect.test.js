@@ -141,3 +141,9 @@ test('ReDoS guard: adversarial inputs at the full scan window stay under 20 ms p
   }
   assert.deepEqual(slow, []);
 });
+
+test('an MCP server name that is a credential is masked inside the evaluation itself (reason and findings), not only at the edge', () => {
+  const r = evaluateCall({ kind: 'mcp_call', server: mockSecret(), tool: 't', args: {} }, pol);
+  assert.ok(!JSON.stringify(r).includes(mockSecret()));
+  assert.match(r.reason, /\[REDACTED:api-secret-key\]/);
+});
