@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { DEFAULT_STEP_MS } from "../components/diagram";
+export const DEFAULT_STEP_MS = 2500;
+export const STEP_TIME_OPTIONS = [
+  { value: 800, label: "0.8s (fast)" },
+  { value: 1500, label: "1.5s" },
+  { value: 2500, label: "2.5s (default)" },
+  { value: 4000, label: "4s" },
+  { value: 6000, label: "6s (slow)" },
+];
 
 /**
  * Step state for a React Flow diagram that walks its arrows in order. step === -1 means the walkthrough is off and the diagram looks as it
@@ -70,46 +77,3 @@ export function useDiagramStepper(total) {
   };
 }
 
-// One look for "activity" on every diagram: a thick dashed accent line whose dashes run along the
-// edge. Edges not reached yet are a fainter, thinner dashed line. CSS keyframes: DiagramStepBar.css.
-const NOW_STYLE = {
-  stroke: "var(--th-status-info)",
-  strokeWidth: 5,
-  strokeDasharray: "12 8",
-  animation: "dstep-flow 0.9s linear infinite",
-};
-const FUTURE_STYLE = { opacity: 0.35, strokeWidth: 2.5, strokeDasharray: "8 6" };
-
-/**
- * React Flow edges for a walkthrough: the edge in focus is accented and animated,
- * edges not reached yet fade to dashed. step < 0 returns the edges untouched.
- */
-export function stepEdges(edges, step) {
-  if (step < 0) return edges;
-  return edges.map((e, i) => {
-    if (i === step) return { ...e, animated: true, style: { ...e.style, ...NOW_STYLE } };
-    if (i > step) return { ...e, style: { ...e.style, ...FUTURE_STYLE } };
-    return e;
-  });
-}
-
-/** Rings the nodes with these ids (the two ends of the arrow in focus) with the shared `dstep-hot` class. */
-export function markNodes(nodes, hotIds) {
-  if (!hotIds || !hotIds.length) return nodes;
-  const hot = new Set(hotIds);
-  return nodes.map((n) => (hot.has(n.id) ? { ...n, className: `${n.className ? `${n.className} ` : ""}dstep-hot` } : n));
-}
-
-/** Accents the edges at the given indexes (page-driven highlight) and leaves the rest alone. */
-export function markEdges(edges, active) {
-  const on = new Set(active);
-  return edges.map((e, i) => (on.has(i) ? { ...e, animated: true, style: { ...e.style, ...NOW_STYLE } } : e));
-}
-
-/** "Source → Target: label" per edge; `names` maps node id to display text. Edges are objects or [src, tgt, label] tuples. */
-export function edgeCaptions(edges, names) {
-  return edges.map((e) => {
-    const [source, target, label] = Array.isArray(e) ? e : [e.source, e.target, e.label ?? e.data?.label];
-    return `${names[source] || source} → ${names[target] || target}${label ? `: ${label}` : ""}`;
-  });
-}

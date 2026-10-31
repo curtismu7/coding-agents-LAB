@@ -1,7 +1,10 @@
 // Rule 13: each browser tab gets its own workspace id, kept in sessionStorage, and sends it as X-Workspace on every API call
 // that touches server state. Storage can be blocked, so a failure falls back to a per-load id.
-const KEY = "ipb.workspace";
+const KEY = "ca.workspace";
 let memo = null;
+
+// Tests only: forget the id held in memory so the next call picks a new one.
+export const forgetWorkspace = () => { memo = null; };
 
 export function workspaceId() {
   if (memo) return memo;

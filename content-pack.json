@@ -1,0 +1,374 @@
+{
+  "schema": "demo-content-pack/1",
+  "id": "coding-agents-lab",
+  "title": "Coding Agents LAB",
+  "version": "0.1.0",
+  "demo": {
+    "id": "coding-agents-lab",
+    "name": "Coding Agents LAB",
+    "catalog": "D0",
+    "baseUrl": "http://localhost:7150",
+    "doctor": "/api/health",
+    "tags": [
+      "coding-agents",
+      "hooks",
+      "claude-code",
+      "cursor",
+      "codex",
+      "gemini-cli",
+      "copilot",
+      "antigravity",
+      "simulated"
+    ]
+  },
+  "glossary": [
+    {
+      "id": "hook",
+      "term": "Agent hook",
+      "definition": "A command the coding agent runs before or after an action, with the event as JSON on stdin and the answer as JSON on stdout. Each agent has its own hook interface. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": [
+        "hook interface",
+        "command hook"
+      ]
+    },
+    {
+      "id": "managed-configuration",
+      "term": "Machine-level managed configuration",
+      "definition": "The file an agent reads for policy set by an administrator rather than by the developer, so the control travels with the laptop and stays in force however the editor is opened. Nothing for a developer to install. In this lab the generated text is displayed and downloadable only. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": [
+        "managed settings"
+      ]
+    },
+    {
+      "id": "native-response",
+      "term": "Native allow, deny or ask",
+      "definition": "The decision returned in the shape that agent understands, so a refusal appears in the developer's normal permission dialog with the reason, not as an error. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": [
+        "permission dialog"
+      ]
+    },
+    {
+      "id": "same-policy",
+      "term": "The same policy, not a second product",
+      "definition": "Prompts, shell commands, file reads, MCP calls and tool results are evaluated by the same gateway, policies and detection as LLM and MCP traffic: one place to author, one audit trail. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": []
+    },
+    {
+      "id": "secret-stop",
+      "term": "Secrets stopped before they leave",
+      "definition": "A prompt carrying a credential is stopped outright so it never reaches the model provider. Risky tool arguments raise an alert and stay in the audit trail without interrupting local work. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": []
+    },
+    {
+      "id": "alert-vs-block",
+      "term": "Alert versus block",
+      "definition": "A block refuses; an alert lets the action proceed and keeps it in the audit trail. In this lab a credential in a prompt blocks, a credential in a tool argument alerts (lab-invented rule split).",
+      "aliases": []
+    },
+    {
+      "id": "ask",
+      "term": "Ask",
+      "definition": "The developer is asked in the agent's own permission dialog. Some agents have no working ask for a hook (Codex, documented) or none documented (Gemini CLI); the lab degrades the ask to a refusal and says so.",
+      "aliases": []
+    },
+    {
+      "id": "deterministic-rules",
+      "term": "Deterministic rules",
+      "definition": "The lab's detection: patterns and a small tokenizer for secrets, shell metacharacters, destructive commands, sensitive paths, unapproved MCP servers and hidden instructions. No model, no score. The rule set is lab-invented.",
+      "aliases": []
+    },
+    {
+      "id": "hidden-instructions",
+      "term": "Hidden instructions",
+      "definition": "Text in a tool result, file or issue addressed to the model, for example in a comment or in invisible characters. Evaluated as the result comes back in.",
+      "aliases": [
+        "prompt injection"
+      ]
+    },
+    {
+      "id": "device-identity",
+      "term": "Identity and device from the certificate",
+      "definition": "Every evaluation carries the developer's identity and device, taken from the machine's certificate, so the audit says who ran what on which laptop. The lab uses a MOCK certificate subject. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": [
+        "named identity"
+      ]
+    },
+    {
+      "id": "audit-trail",
+      "term": "Audit trail",
+      "definition": "One record per evaluation: developer, device, agent, kind of action, decision and a redacted copy of the text.",
+      "aliases": []
+    },
+    {
+      "id": "fail-open-closed",
+      "term": "Fail open and FailClosed",
+      "definition": "If the gateway is briefly unreachable the developer keeps working and the gap is recorded for review (the default). A regulated tenant can set FailClosed to get a refusal instead. FailClosed, Enabled, Agents and Gateways are console swagger names, 2026-10-31, schema only. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": [
+        "FailClosed",
+        "gap"
+      ]
+    },
+    {
+      "id": "tls-termination",
+      "term": "TLS termination (the alternative)",
+      "definition": "Inspecting a coding agent otherwise means a certificate on every developer machine and a decryption policy. A hook avoids both, but only covers agents it is installed into, which is why the endpoint sensor still finds the ones that are not on the list. Ping release claim, UNVERIFIED on our tenant.",
+      "aliases": [
+        "decryption"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "deck-slide-49",
+      "title": "Ping ID4AI Workforce H2 2026 deck, slide 49: Coding Agents",
+      "url": "https://example.invalid/ping-id4ai-workforce-h2-2026-deck",
+      "kind": "deck",
+      "use": "The coding-agents release claims.",
+      "status": "read",
+      "checked": "2026-10-31"
+    },
+    {
+      "id": "console-swagger",
+      "title": "Privilege console swagger, 2026-10-31 (schema only)",
+      "url": "https://example.invalid/privilege-console-swagger",
+      "kind": "schema",
+      "use": "Field names for the CodingAgent config. It proves names exist, not behaviour.",
+      "status": "read",
+      "checked": "2026-10-31"
+    },
+    {
+      "id": "agent-hook-docs",
+      "title": "The six agents' own hook documentation (listed in README.md, Sources)",
+      "url": "https://example.invalid/agent-hook-docs",
+      "kind": "vendor-docs",
+      "use": "Which shapes are documented; the rest are marked illustrative.",
+      "status": "read",
+      "checked": "2026-10-31"
+    }
+  ],
+  "cards": [
+    {
+      "id": "try-secret-prompt",
+      "label": "Action 1: A prompt that carries a credential",
+      "description": "The developer pasted a credential into the prompt. The hook stops the prompt before it is sent, so the credential never reaches the model provider. The audit keeps a redacted copy.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "hook",
+        "native-response",
+        "secret-stop"
+      ],
+      "story": "S01"
+    },
+    {
+      "id": "try-destructive-shell",
+      "label": "Action 2: A destructive shell command",
+      "description": "An agent \"cleaning up a cache\" is about to delete the home directory. The decision returns in the agent's own deny shape, so the refusal shows in the permission dialog with the reason.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "hook",
+        "native-response",
+        "deterministic-rules"
+      ],
+      "story": "S02"
+    },
+    {
+      "id": "try-shell-chain",
+      "label": "Action 3: A chained command that sends data out",
+      "description": "Shell metacharacters chain a data source into an upload tool. This is a risky tool argument: it raises an alert and stays in the audit trail, and the developer is not interrupted.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "alert-vs-block",
+        "audit-trail"
+      ],
+      "story": "S03"
+    },
+    {
+      "id": "try-sensitive-read",
+      "label": "Action 4: A file read of a sensitive path",
+      "description": "The agent wants to read the developer's cloud credentials. The policy asks: the developer sees the question in the agent's own permission dialog, with the reason.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "native-response",
+        "ask"
+      ],
+      "story": "S04"
+    },
+    {
+      "id": "try-mcp-unlisted",
+      "label": "Action 5: An MCP call to a server the tenant has not approved",
+      "description": "The agent calls an MCP server that is not on the approved list. The same gateway that governs MCP traffic elsewhere asks before the call goes out.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "same-policy",
+        "ask"
+      ],
+      "story": "S05"
+    },
+    {
+      "id": "try-hidden-instructions",
+      "label": "Action 6: A tool result carrying hidden instructions",
+      "description": "A tool result contains text addressed to the model, hidden in a comment. Evaluated on the way back in, it is withheld. This is prompt injection through a file or an issue, the agent-side case a network gateway never sees.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "hidden-instructions",
+        "deterministic-rules"
+      ],
+      "story": "S06"
+    },
+    {
+      "id": "try-benign",
+      "label": "Action 7: An ordinary command",
+      "description": "Nothing risky. The hook says nothing, the agent carries on, and the evaluation is still in the audit trail with the developer and the device.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#evaluate"
+      },
+      "terms": [
+        "audit-trail",
+        "device-identity"
+      ],
+      "story": "S07"
+    },
+    {
+      "id": "try-agents",
+      "label": "Agents: paths, events and native shapes",
+      "description": "Six agents, which shapes are documented and which are illustrative.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#agents"
+      },
+      "terms": [
+        "hook",
+        "managed-configuration"
+      ]
+    },
+    {
+      "id": "try-gateway",
+      "label": "Gateway down: fail open or FailClosed",
+      "description": "Flip the switch and run an action both ways; the gap list records it.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#gateway"
+      },
+      "terms": [
+        "fail-open-closed"
+      ]
+    },
+    {
+      "id": "try-config",
+      "label": "Config: the generated managed configuration",
+      "description": "Editable CodingAgent config and the text for each agent. Text only.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#config"
+      },
+      "terms": [
+        "managed-configuration",
+        "fail-open-closed"
+      ]
+    },
+    {
+      "id": "concept-why-it-matters",
+      "label": "Why it matters",
+      "description": "The challenge: a coding agent reads the repository, takes instructions from files in it, calls internal tools and holds the developer's credentials, yet bypasses every gateway control, so prompts and source leave uninspected. Technically: prompts, shell commands, file reads, MCP calls and tool results are evaluated at the agent, through its own hook interface. For the business: source code and credentials stop leaving through coding agents without a TLS-decryption project, with one policy and one audit trail.",
+      "group": "concept",
+      "action": {
+        "type": "route",
+        "href": "/#talk"
+      },
+      "terms": [
+        "same-policy",
+        "tls-termination"
+      ]
+    },
+    {
+      "id": "concept-diagram",
+      "label": "Diagrams",
+      "description": "Two diagrams: hook, gateway and the native answer; and why a hook and where it stops.",
+      "group": "concept",
+      "action": {
+        "type": "route",
+        "href": "/#diagram"
+      },
+      "terms": [
+        "hook",
+        "tls-termination"
+      ]
+    },
+    {
+      "id": "ref-doctor",
+      "label": "Doctor and health",
+      "description": "Preflight checks and the demo-health/1 endpoint.",
+      "group": "setup",
+      "action": {
+        "type": "route",
+        "href": "/api/health"
+      }
+    }
+  ],
+  "stories": [
+    {
+      "id": "S01",
+      "title": "A prompt that carries a credential",
+      "say": "The developer pasted a credential into the prompt. The hook stops the prompt before it is sent, so the credential never reaches the model provider. The audit keeps a redacted copy."
+    },
+    {
+      "id": "S02",
+      "title": "A destructive shell command",
+      "say": "An agent \"cleaning up a cache\" is about to delete the home directory. The decision returns in the agent's own deny shape, so the refusal shows in the permission dialog with the reason."
+    },
+    {
+      "id": "S03",
+      "title": "A chained command that sends data out",
+      "say": "Shell metacharacters chain a data source into an upload tool. This is a risky tool argument: it raises an alert and stays in the audit trail, and the developer is not interrupted."
+    },
+    {
+      "id": "S04",
+      "title": "A file read of a sensitive path",
+      "say": "The agent wants to read the developer's cloud credentials. The policy asks: the developer sees the question in the agent's own permission dialog, with the reason."
+    },
+    {
+      "id": "S05",
+      "title": "An MCP call to a server the tenant has not approved",
+      "say": "The agent calls an MCP server that is not on the approved list. The same gateway that governs MCP traffic elsewhere asks before the call goes out."
+    },
+    {
+      "id": "S06",
+      "title": "A tool result carrying hidden instructions",
+      "say": "A tool result contains text addressed to the model, hidden in a comment. Evaluated on the way back in, it is withheld. This is prompt injection through a file or an issue, the agent-side case a network gateway never sees."
+    },
+    {
+      "id": "S07",
+      "title": "An ordinary command",
+      "say": "Nothing risky. The hook says nothing, the agent carries on, and the evaluation is still in the audit trail with the developer and the device."
+    }
+  ]
+}

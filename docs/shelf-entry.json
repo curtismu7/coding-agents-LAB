@@ -1,0 +1,15 @@
+{
+  "demos": [
+    {
+      "id": "coding-agents-lab",
+      "name": "Coding Agents LAB",
+      "kind": "Demo",
+      "description": "Inspection inside Claude Code, Cursor, Codex, Gemini CLI, GitHub Copilot and Antigravity through each agent's own hook interface, answered in that agent's native allow, deny or ask, as a simulation of the 2026-11-02 Ping release claims. Mock tables, or a Live local engine that runs a real hook script. Every product claim is UNVERIFIED on our tenant.",
+      "url": "http://localhost:7150",
+      "healthPath": "/api/health",
+      "composeFile": "coding-agents-LAB/docker-compose.yml",
+      "composeOverlays": [],
+      "notes": "Host-run: ./scripts/run.sh (port 7150). Docker: HOST_PORT=7150 docker compose up --build -d (published on 127.0.0.1 only). Mock and Live are both loopback-only with zero outbound calls; the lab never writes an agent configuration anywhere. No catalog id yet (placeholder D0 in the content pack)."
+    }
+  ]
+}
