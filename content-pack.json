@@ -6,7 +6,7 @@
   "demo": {
     "id": "coding-agents-lab",
     "name": "Coding Agents LAB",
-    "catalog": "D0",
+    "catalog": "D102",
     "baseUrl": "http://localhost:7150",
     "doctor": "/api/health",
     "tags": [

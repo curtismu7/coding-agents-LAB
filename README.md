@@ -4,7 +4,7 @@ A simulation of "Coding Agents": inspection inside Claude Code, Cursor, Codex, G
 
 Tier: Demo
 Repo: https://github.com/ping-sandbox/coding-agents-LAB
-Catalog: none assigned yet (the content pack carries the placeholder D0)
+Catalog: D102
 
 **Tier: Demo.** Source: the Ping ID4AI Workforce H2 2026 deck, slide 49 (release 2026-11-02). **Every product claim is a Ping release claim, UNVERIFIED on our tenant.** Nothing here calls a real gateway, identity provider or tenant, nothing leaves your machine, and the lab never writes any agent configuration anywhere.
 

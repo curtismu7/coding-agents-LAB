@@ -24,7 +24,7 @@ export function buildPack() {
     id: 'coding-agents-lab',
     title: 'Coding Agents LAB',
     version,
-    demo: { id: 'coding-agents-lab', name: 'Coding Agents LAB', catalog: 'D0', baseUrl: 'http://localhost:7150', doctor: '/api/health', tags: ['coding-agents', 'hooks', 'claude-code', 'cursor', 'codex', 'gemini-cli', 'copilot', 'antigravity', 'simulated'] },
+    demo: { id: 'coding-agents-lab', name: 'Coding Agents LAB', catalog: 'D102', baseUrl: 'http://localhost:7150', doctor: '/api/health', tags: ['coding-agents', 'hooks', 'claude-code', 'cursor', 'codex', 'gemini-cli', 'copilot', 'antigravity', 'simulated'] },
     glossary: [
       { id: 'hook', term: 'Agent hook', definition: `A command the coding agent runs before or after an action, with the event as JSON on stdin and the answer as JSON on stdout. Each agent has its own hook interface. ${UNV}`, aliases: ['hook interface', 'command hook'] },
       { id: 'managed-configuration', term: 'Machine-level managed configuration', definition: `The file an agent reads for policy set by an administrator rather than by the developer, so the control travels with the laptop and stays in force however the editor is opened. Nothing for a developer to install. In this lab the generated text is displayed and downloadable only. ${UNV}`, aliases: ['managed settings'] },

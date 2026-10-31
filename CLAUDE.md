@@ -9,4 +9,4 @@ Demo-tier standalone app: Ping "Coding Agents" release claims (deck slide 49, re
 - Field names Enabled, FailClosed, Agents, Gateways (AIGuard, AIIntent, Behaviour carried, not interpreted) come from the console swagger of 2026-10-31, schema only. Everything else (rules, reason codes, effects, the mock certificate format, fallbacks) is lab-invented and tagged so.
 - Settings: one shared file `~/Development/.env` (mode 600, `STANDALONE_ENV` overrides), parsed with `util.parseEnv` in `server/src/settings.js`; this lab takes only `CODING_AGENTS_LAB_MODE`, nothing else enters the environment.
 - Never echo a credential typed in Live mode (`maskDeep` over the evaluate response and the hook answer); the hook is loopback-only, refuses redirects and has its own netguard; run check-drift, check-css and conformance by hand.
-- SE k8s build deferred (owner, 2026-10-31); no k8s manifests. No catalog id yet (placeholder D0).
+- SE k8s build deferred (owner, 2026-10-31); no k8s manifests. Catalog id D102 (assigned 2026-10-31, owner delegated the choice; not yet recorded in the plan).

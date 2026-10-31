@@ -9,7 +9,8 @@
       "healthPath": "/api/health",
       "composeFile": "coding-agents-LAB/docker-compose.yml",
       "composeOverlays": [],
-      "notes": "Host-run: ./scripts/run.sh (port 7150). Docker: HOST_PORT=7150 docker compose up --build -d (published on 127.0.0.1 only). Mock and Live are both loopback-only with zero outbound calls; the lab never writes an agent configuration anywhere. No catalog id yet (placeholder D0 in the content pack)."
+      "notes": "Host-run: ./scripts/run.sh (port 7150). Docker: HOST_PORT=7150 docker compose up --build -d (published on 127.0.0.1 only). Mock and Live are both loopback-only with zero outbound calls; the lab never writes an agent configuration anywhere. No catalog id yet (placeholder D0 in the content pack).",
+      "catalogId": "D102"
     }
   ]
 }
