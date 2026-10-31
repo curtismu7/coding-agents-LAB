@@ -17,6 +17,7 @@ import { MOCK_TABLE } from './mockTable.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { newTrace } from './trace.js';
 import { evaluateAction, handleHook } from './service.js';
+import { SOURCES } from './sources.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
@@ -30,14 +31,17 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   app.use((_req, res, next) => { res.set('X-Content-Type-Options', 'nosniff'); next(); });
 
   const api = express.Router();
-  // A hook event can carry a long tool result; the gateway evaluates at most 4000 characters of it. Everything else is small.
-  api.use((req, res, next) => express.json({ limit: req.path === '/hook' ? '64kb' : '16kb' })(req, res, next));
+  // A hook event can carry a long tool result; the hook trims every field to its head and tail (trim.js) and the gateway scans the first
+  // and last 4000 characters of a field. Everything else is small.
+  api.use((req, res, next) => express.json({ limit: req.path === '/hook' ? '256kb' : '16kb' })(req, res, next));
   api.use('/health', health.router);
   const verticalOf = (req) => verticalFrom(req.body?.vertical ?? req.query.vertical ?? req.headers['x-lab-vertical']);
   const castFor = (req) => loadCast(configFile, verticalOf(req));
   const noStore = (res) => res.set('Cache-Control', 'no-store');
   api.get('/story', (req, res) => { noStore(res); res.json(buildStory(castFor(req), verticalOf(req))); });
   api.get('/diagram', (req, res) => { noStore(res); res.json(buildDiagram(castFor(req), DIAGRAM_NAMES.includes(req.query.name) ? req.query.name : 'hook-flow')); });
+  // The documentation each "documented" shape was read from: plain text for a presenter to copy. The lab never fetches them.
+  api.get('/sources', (_req, res) => { noStore(res); res.json(SOURCES); });
   api.get('/info', (_req, res) => { noStore(res); res.json({ mode: defaultMode(), modes: ['mock', 'live'], simulated: true, release: '2026-11-02', unverified: true }); });
 
   const ws = (req, res) => { const id = workspaceFrom(req); if (!id) res.status(400).json({ error: 'bad_workspace' }); return id; };

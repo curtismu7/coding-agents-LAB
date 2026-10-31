@@ -6,6 +6,9 @@ import { REFIT_EVENT, useFitOnResize } from "../hooks/useFitOnResize";
 import { ClaimTag } from "./Bits";
 
 const FIT = { padding: 0.08 };
+// At phone width fitting the whole wide diagram makes the text unreadable, so the view is held at 0.6 and centred on the first box;
+// drag the canvas to pan, drag a box to move it.
+const narrow = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(max-width: 600px)").matches;
 const HANDLES = [["t", Position.Top], ["b", Position.Bottom], ["l", Position.Left], ["r", Position.Right]];
 
 function Box({ data }) {
@@ -54,7 +57,8 @@ function sides(a, b) {
 
 function Canvas({ pattern, positions, onMove, stepper }) {
   const ref = useRef(null);
-  useFitOnResize(ref, FIT);
+  const fit = useMemo(() => (narrow() ? { padding: 0.2, minZoom: 0.6, maxZoom: 0.6, nodes: [{ id: pattern.nodes[0].id }] } : FIT), [pattern]);
+  useFitOnResize(ref, fit);
   const active = stepper.step >= 0 ? pattern.steps[stepper.step] : null;
   const nodes = pattern.nodes.map((n) => ({
     id: n.id, type: "box", position: positions[n.id], draggable: true,
@@ -75,7 +79,7 @@ function Canvas({ pattern, positions, onMove, stepper }) {
   });
   return (
     <div ref={ref} className="pat-canvas" data-testid="pattern-canvas">
-      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView fitViewOptions={FIT} nodesConnectable={false} minZoom={0.3}
+      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView fitViewOptions={fit} nodesConnectable={false} minZoom={0.3}
         onNodeDragStop={(_, n) => onMove(n.id, n.position)} onNodeDrag={(_, n) => onMove(n.id, n.position)} proOptions={{ hideAttribution: true }}>
         <Background variant={BackgroundVariant.Dots} gap={18} />
         <Controls showInteractive={false} />
@@ -134,7 +138,7 @@ export default function PatternDiagram({ pattern, resetSignal = 0 }) {
       <ReactFlowProvider>
         <Canvas pattern={pattern} positions={positions} onMove={onMove} stepper={stepper} />
       </ReactFlowProvider>
-      <p className="muted">Drag any box. Simulated; hosts are examples; Ping release claims UNVERIFIED on our tenant. Moved: {Object.keys(positions).filter((k) => positions[k].x !== initial[k].x || positions[k].y !== initial[k].y).length} box(es).</p>
+      <p className="muted">Drag any box; drag the background to pan. Simulated; hosts are examples; Ping release claims UNVERIFIED on our tenant. Moved: {Object.keys(positions).filter((k) => positions[k].x !== initial[k].x || positions[k].y !== initial[k].y).length} box(es).</p>
     </section>
   );
 }

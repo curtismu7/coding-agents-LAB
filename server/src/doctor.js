@@ -13,8 +13,9 @@ import { modeFrom } from './config.js';
 import { DIAGRAM_NAMES, buildDiagram } from './diagramData.js';
 import { MOCK_TABLE } from './mockTable.js';
 import { HOOK_PATH } from './live.js';
+import { settingsPath } from './settings.js';
 
-export const settingsFile = (env = process.env) => env.STANDALONE_ENV || `${env.HOME || ''}/Development/.env`;
+export const settingsFile = (env = process.env) => (env.STANDALONE_ENV ? env.STANDALONE_ENV : settingsPath(env));
 
 export async function runChecks({ env = process.env, cast = DEFAULT_CAST } = {}) {
   const checks = [];

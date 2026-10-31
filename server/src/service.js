@@ -5,6 +5,7 @@ import { isCovered } from './codingConfig.js';
 import { InputError } from './errors.js';
 import { DEAD_GATEWAY, runHookScript } from './live.js';
 import { SCENARIOS } from './data.js';
+import { maskDeep } from './detect.js';
 import { buildHops, ctxFor, dialogFor, gatewayFromPayload, identityFrom, mockCertSubject, scenarioCall, summarize } from './evaluation.js';
 import { formatTraceparent, newTrace } from './trace.js';
 
@@ -30,15 +31,16 @@ export function handleHook({ ws, body, cast, workspaces, trace, mode = 'live' })
   if (!agentById(agent)) throw new InputError('unknown_agent', 'agent must be one of the six');
   const who = identityFrom(typeof certSubject === 'string' ? certSubject : '');
   const g = gatewayFromPayload({ agent, payload, cast });
-  if (!g) return { handled: false, native: {}, decision: 'allow', reasonCode: 'IGNORED-EVENT', reason: 'Not an event the lab evaluates.', findings: [], identity: who, traceId: trace.traceId };
+  if (!g) return maskDeep({ handled: false, native: {}, decision: 'allow', reasonCode: 'IGNORED-EVENT', reason: 'Not an event the lab evaluates.', findings: [], identity: who, traceId: trace.traceId });
   workspaces.addAudit(ws, { agent, kind: g.call.kind, identity: who.identity, device: who.device, decision: g.evaluation.decision, reasonCode: g.evaluation.reasonCode, nativeDecision: g.outcome.native, summary: summarize(g.call), traceId: trace.traceId, mode });
-  return { handled: true, kind: g.call.kind, native: g.native, decision: g.evaluation.decision, reasonCode: g.evaluation.reasonCode, reason: g.evaluation.reason, findings: g.evaluation.findings, decidedBy: g.evaluation.decidedBy, outcome: g.outcome, identity: who, traceId: trace.traceId };
+  // Nothing in the answer may carry a raw credential, whatever the event held (the reason can quote an MCP server name).
+  return maskDeep({ handled: true, kind: g.call.kind, native: g.native, decision: g.evaluation.decision, reasonCode: g.evaluation.reasonCode, reason: g.evaluation.reason, findings: g.evaluation.findings, decidedBy: g.evaluation.decidedBy, outcome: g.outcome, identity: who, traceId: trace.traceId });
 }
 
 // ---- The evaluate flow --------------------------------------------------------------------------------------------------------
 function untouched({ agent, why }) { return { covered: false, installed: false, note: why, outcome: { native: 'none', covered: false }, evaluation: null, native: null, dialog: null, gap: null, agent }; }
 
-export async function evaluateAction({ mode, cast, vertical, agent, scenario, custom, config, down, ws, workspaces, table, traceparent, port }) {
+async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, config, down, ws, workspaces, table, traceparent, port }) {
   if (!agentById(agent)) throw new InputError('unknown_agent', `agent must be one of the six`);
   let call; let scenarioId = null; let lesson = null; let expected = null;
   if (scenario !== undefined) {
@@ -52,7 +54,9 @@ export async function evaluateAction({ mode, cast, vertical, agent, scenario, cu
 
   const trace = newTrace(traceparent);
   const identity = identityFrom(mockCertSubject(cast));
-  const base = { scenario: scenarioId, lesson, expected, agent, agentName: agentById(agent).name, kind: call.kind, call: { ...call, summary: summarize(call) }, mode, down: !!down, identity, certSubject: mockCertSubject(cast), traceId: trace.traceId, failClosed: !!config.FailClosed };
+  const chn = agentById(agent).channels[call.kind];
+  const channel = { event: chn.event, status: chn.status, documented: chn.documented, illustrative: chn.illustrative, canBlock: chn.canBlock, canAsk: chn.canAsk };
+  const base = { channel, scenario: scenarioId, lesson, expected, agent, agentName: agentById(agent).name, kind: call.kind, call: { ...call, summary: summarize(call) }, mode, down: !!down, identity, certSubject: mockCertSubject(cast), traceId: trace.traceId, failClosed: !!config.FailClosed };
 
   if (!isCovered(config, agent)) {
     return { ...base, ...untouched({ agent, why: !config.Enabled ? 'Enabled is false: no hook is installed on any agent, so nothing is evaluated and the agent is untouched.' : `${agentById(agent).name} is not in Agents: no hook is installed for it, so it is untouched. (A hook only covers agents it is installed into: the endpoint sensor is what finds agents that are not on the list.)` }), hookRequest: null, hops: [] };
@@ -92,5 +96,11 @@ export async function evaluateAction({ mode, cast, vertical, agent, scenario, cu
   }
   const dialog = dialogFor({ agent, call, outcome, reason: evaluation.reason });
   return { ...base, covered: true, installed: true, hookRequest, evaluation, outcome, native, dialog, gap, hops };
+}
+// A visitor's own action may carry a real credential: every string in the response (the call, the hook request, the hops, the dialog,
+// the reasons) is masked before it leaves. The scripted actions carry only the labelled mock credential, which stays visible (rule 4).
+export async function evaluateAction(args) {
+  const r = await evaluateInner(args);
+  return args.scenario === undefined && args.custom !== undefined ? maskDeep(r) : r;
 }
 export { SCENARIOS };

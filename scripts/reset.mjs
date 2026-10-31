@@ -2,6 +2,7 @@
 // Reset a running lab: clears the default workspace's evaluations.
 //   node scripts/reset.mjs [base-url]      (default http://localhost:${PORT:-7150})
 // Loopback only: refuses any other host. Needs the server already running; sends the same-origin header the server requires.
+import { pathToFileURL } from 'node:url';
 import { isLoopbackHost } from '../server/src/safety.js';
 
 export async function reset(base = `http://localhost:${process.env.PORT || 7150}`) {
@@ -12,6 +13,6 @@ export async function reset(base = `http://localhost:${process.env.PORT || 7150}
   return r.json();
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   reset(process.argv[2]).then((j) => console.log(`reset: ${j.reset}`), (e) => { console.error(e.message); process.exit(1); });
 }

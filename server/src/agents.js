@@ -13,6 +13,15 @@ export const KINDS = ['prompt', 'shell', 'file_read', 'mcp_call', 'tool_result']
 export const KIND_LABEL = { prompt: 'Prompt', shell: 'Shell command', file_read: 'File read', mcp_call: 'MCP call', tool_result: 'Tool result' };
 export const DOC = 'documented';
 export const ILL = 'illustrative';
+export const PART = 'partly';
+
+// One channel (one kind of action on one agent). `documented` says what was read in the vendor's docs; `illustrative` says what
+// is the lab's own, UNVERIFIED. status: documented (nothing illustrative), partly (both), illustrative (nothing documented).
+const ch = (event, canBlock, canAsk, documented, illustrative = '') => ({
+  event, canBlock, canAsk, documented, illustrative,
+  status: !illustrative ? DOC : !documented ? ILL : PART,
+  caveat: [documented && `Documented: ${documented}`, illustrative && `Illustrative, UNVERIFIED: ${illustrative}`].filter(Boolean).join(' '),
+});
 
 const wrapPre = (name, permissionDecision, reason) => ({ hookSpecificOutput: { hookEventName: name, permissionDecision, permissionDecisionReason: reason } });
 const argsOf = (c) => (c.args && typeof c.args === 'object' ? c.args : {});
@@ -28,14 +37,14 @@ const claude = {
     { os: 'macOS', path: '/Library/Application Support/ClaudeCode/managed-settings.json', status: DOC },
     { os: 'Linux and WSL', path: '/etc/claude-code/managed-settings.json', status: DOC },
   ],
-  managedNote: 'A managed-settings.d/ drop-in directory is also documented. The key allowManagedHooksOnly makes user, project and plugin hooks inert.',
+  managedNote: 'A managed-settings.d/ drop-in directory is also documented. The key allowManagedHooksOnly makes user, project and plugin hooks inert. The documented permissionDecision values are allow, deny, ask and defer (the lab uses the first three).',
   configCaveat: 'The path and the key allowManagedHooksOnly are documented. The exact hooks block written below (matcher, nested hooks array, type command) was not re-read at build time: illustrative shape, UNVERIFIED.',
   channels: {
-    prompt: { event: 'UserPromptSubmit', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented: stdin field prompt, block with top-level decision "block" and reason. An ask is not available for this event.' },
-    shell: { event: 'PreToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Envelope documented (tool_name, tool_input, permissionDecision allow/deny/ask with permissionDecisionReason). The tool name strings (Bash, Read, mcp__server__tool) were not re-read: illustrative.' },
-    file_read: { event: 'PreToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Envelope documented. The Read tool name and tool_input.file_path field were not re-read: illustrative.' },
-    mcp_call: { event: 'PreToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Envelope documented. The mcp__server__tool naming was not re-read: illustrative.' },
-    tool_result: { event: 'PostToolUse', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented: stdin tool_response; output decision "block" with reason, or hookSpecificOutput.updatedToolOutput to replace what the model sees. The docs say the tool has already run and a block only adds the reason beside the result.' },
+    prompt: ch('UserPromptSubmit', true, false, 'stdin field prompt; block with top-level decision "block" and reason. There is no ask for this event.'),
+    shell: ch('PreToolUse', true, true, 'the envelope: stdin tool_name, tool_input, tool_use_id; stdout hookSpecificOutput.permissionDecision (allow, deny, ask or defer) with permissionDecisionReason.', 'the tool name Bash and the field tool_input.command.'),
+    file_read: ch('PreToolUse', true, true, 'the same envelope.', 'the tool name Read and the field tool_input.file_path.'),
+    mcp_call: ch('PreToolUse', true, true, 'the same envelope.', 'the spelling mcp__server__tool of an MCP tool name.'),
+    tool_result: ch('PostToolUse', true, false, 'stdin tool_response; output decision "block" with reason, or hookSpecificOutput.updatedToolOutput to replace what the model sees (MCP output is passed through unvalidated). The docs say the tool has already run, so a block only adds the reason beside the result.', 'the content/text layout of the tool_response of an MCP result.'),
   },
   request(kind, c, x) {
     switch (kind) {
@@ -82,11 +91,11 @@ const cursor = {
   managedNote: 'Enterprise (MDM-managed) hooks.json is the highest-priority level; project and user files rank below it.',
   configCaveat: 'The enterprise hooks.json paths and the event names are documented. The file body (version, hooks map of event to command list) was not re-read: illustrative shape, UNVERIFIED.',
   channels: {
-    prompt: { event: 'beforeSubmitPrompt', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented: stdin prompt and attachments; the answer uses continue (boolean) and user_message. No ask.' },
-    shell: { event: 'beforeShellExecution', canBlock: true, canAsk: true, status: DOC, caveat: 'Documented: stdin command, cwd, sandbox; stdout permission allow/deny/ask with user_message and agent_message.' },
-    file_read: { event: 'beforeReadFile', canBlock: true, canAsk: true, status: ILL, caveat: 'The event and its stdin fields (file_path, content, attachments) are documented. The permission answer was documented for the shell and MCP events only: using it here is illustrative, UNVERIFIED.' },
-    mcp_call: { event: 'beforeMCPExecution', canBlock: true, canAsk: true, status: DOC, caveat: 'Documented: stdin tool_name, tool_input, mcp_server_name and a url or command; stdout permission allow/deny/ask.' },
-    tool_result: { event: 'afterMCPExecution', canBlock: false, canAsk: false, status: ILL, caveat: 'The event exists but its stdin and stdout shapes were not read: illustrative, UNVERIFIED. Treated as observe-only (the gap is recorded, the result is not withheld).' },
+    prompt: ch('beforeSubmitPrompt', true, false, 'stdin prompt and attachments; the answer uses continue (boolean) and user_message. No ask.'),
+    shell: ch('beforeShellExecution', true, true, 'stdin command, cwd, sandbox; stdout permission allow, deny or ask with user_message and agent_message.'),
+    file_read: ch('beforeReadFile', true, false, 'stdin file_path, content, attachments; stdout permission allow or deny (the page lists no ask for this event, so the lab degrades an ask to a refusal).'),
+    mcp_call: ch('beforeMCPExecution', true, true, 'stdin tool_name, tool_input, mcp_server_name and a url or command; stdout permission allow, deny or ask.'),
+    tool_result: ch('afterMCPExecution', false, false, 'the event exists.', 'its stdin and stdout shapes (the field result_json is invented). Treated as observe-only: the gap is recorded, the result is not withheld.'),
   },
   request(kind, c, x) {
     switch (kind) {
@@ -126,11 +135,11 @@ const codex = {
   managedNote: 'Documented: user hooks in ~/.codex/hooks.json and config.toml, and a managed requirements.toml with managed_dir (macOS, Linux) or windows_managed_dir (Windows). Hook scripts for a managed policy must sit under the managed directory.',
   configCaveat: 'managed_dir is documented; the location of requirements.toml and the hooks file body are illustrative, UNVERIFIED.',
   channels: {
-    prompt: { event: 'UserPromptSubmit', canBlock: true, canAsk: false, status: ILL, caveat: 'The event name is documented. Its prompt field and block answer were not read: illustrative, UNVERIFIED.' },
-    shell: { event: 'PreToolUse', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented: tool_name, tool_input.command, deny via hookSpecificOutput.permissionDecision "deny" with permissionDecisionReason (or exit code 2). Documented limit: "ask" is parsed but not supported yet, so the lab degrades an ask to a refusal.' },
-    file_read: { event: 'PreToolUse', canBlock: true, canAsk: false, status: ILL, caveat: 'No separate read event is documented; a read tool name here is illustrative, UNVERIFIED. The deny envelope is the documented PreToolUse one.' },
-    mcp_call: { event: 'PreToolUse', canBlock: true, canAsk: false, status: ILL, caveat: 'The mcp__server__tool name is illustrative, UNVERIFIED. The deny envelope is the documented PreToolUse one.' },
-    tool_result: { event: 'PostToolUse', canBlock: true, canAsk: false, status: ILL, caveat: 'The event is documented; its stdin tool_response and block answer were not read: illustrative, UNVERIFIED.' },
+    prompt: ch('UserPromptSubmit', true, false, 'the event name.', 'its prompt field and its block answer.'),
+    shell: ch('PreToolUse', true, false, 'tool_name, tool_input.command for Bash; deny via hookSpecificOutput.permissionDecision "deny" with permissionDecisionReason, or exit code 2. "ask" is parsed but not supported yet, so the lab degrades an ask to a refusal.'),
+    file_read: ch('PreToolUse', true, false, 'the PreToolUse deny envelope.', 'a read tool: no separate read event is documented.'),
+    mcp_call: ch('PreToolUse', true, false, 'the PreToolUse deny envelope.', 'the spelling mcp__server__tool of an MCP tool name.'),
+    tool_result: ch('PostToolUse', true, false, 'the event name.', 'its stdin tool_response and its block answer.'),
   },
   request(kind, c, x) {
     const pre = { turn_id: 'turn-mock-0001', tool_use_id: 'call-mock-0001', permission_mode: 'default' };
@@ -173,11 +182,11 @@ const gemini = {
   managedNote: 'Documented: system settings rank below project and user in the page read; the pages also say Gemini CLI was replaced by Antigravity CLI on 2026-06-18, so treat this agent as possibly legacy.',
   configCaveat: 'The Linux system path and the event names are documented. The hooks block body is illustrative, UNVERIFIED.',
   channels: {
-    prompt: { event: 'BeforeAgent', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented (field tables): stdin prompt; decision "deny" blocks the turn, with a required reason.' },
-    shell: { event: 'BeforeTool', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented (field tables): tool_name, tool_input, decision "deny" (alias "block") with reason, exit code 2. No ask is documented, so the lab degrades an ask to a refusal. The tool name run_shell_command was not read: illustrative.' },
-    file_read: { event: 'BeforeTool', canBlock: true, canAsk: false, status: DOC, caveat: 'Same envelope as the shell channel. The tool name read_file and its field were not read: illustrative.' },
-    mcp_call: { event: 'BeforeTool', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented: an optional mcp_context object. How the MCP tool name is spelled was not read: illustrative.' },
-    tool_result: { event: 'AfterTool', canBlock: true, canAsk: false, status: DOC, caveat: 'Documented (field tables): tool_response with llmContent and returnDisplay; decision "deny" hides the real output and reason replaces it.' },
+    prompt: ch('BeforeAgent', true, false, 'stdin prompt (field tables); decision "deny" blocks the turn, with a required reason.'),
+    shell: ch('BeforeTool', true, false, 'stdin tool_name and tool_input; decision "deny" (alias "block") with reason, exit code 2. No ask is documented, so the lab degrades an ask to a refusal.', 'the tool name run_shell_command and the field tool_input.command.'),
+    file_read: ch('BeforeTool', true, false, 'the same envelope.', 'the tool name read_file and its field file_path.'),
+    mcp_call: ch('BeforeTool', true, false, 'the same envelope, and that an optional mcp_context object exists.', 'the field names inside mcp_context and the spelling of an MCP tool name.'),
+    tool_result: ch('AfterTool', true, false, 'stdin tool_response with llmContent and returnDisplay; decision "deny" hides the real output and reason replaces it.'),
   },
   request(kind, c, x) {
     switch (kind) {
@@ -215,26 +224,25 @@ const copilot = {
   managedNote: 'Documented: admin-installed policy hooks are machine-wide and apply to the Copilot CLI only; the cloud agent reads only repository hook files.',
   configCaveat: 'The policy.d directories and event names are documented. The file body is illustrative, UNVERIFIED.',
   channels: {
-    prompt: { event: 'userPromptSubmitted', canBlock: false, canAsk: false, status: DOC, caveat: 'Documented limit: this event has no allow or deny field; modifiedPrompt is honoured only by SDK hooks and a config-file hook\'s output is dropped. The hook can observe the prompt (an alert and an audit record) but cannot stop it.' },
-    shell: { event: 'preToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Documented: camelCase stdin (sessionId, timestamp, cwd, toolName, toolArgs); stdout permissionDecision allow/deny/ask with permissionDecisionReason. In autopilot or the cloud agent an ask is treated as a deny. Tool name strings were not read: illustrative.' },
-    file_read: { event: 'preToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Same envelope as the shell channel. The read tool name is illustrative.' },
-    mcp_call: { event: 'preToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Same envelope. How an MCP tool name is spelled is illustrative.' },
-    tool_result: { event: 'postToolUse', canBlock: false, canAsk: false, status: ILL, caveat: 'The event is documented; its stdin and stdout shapes were not read: illustrative, UNVERIFIED. Observe-only.' },
+    prompt: ch('userPromptSubmitted', false, false, 'camelCase stdin (sessionId, timestamp, cwd, prompt). This event has no allow or deny field; modifiedPrompt is honoured only by SDK hooks and a config-file hook\'s output is dropped, so the hook can observe the prompt (alert and audit) but cannot stop it.'),
+    shell: ch('preToolUse', true, true, 'camelCase stdin (sessionId, timestamp, cwd, toolName, toolArgs); stdout permissionDecision allow, deny or ask with permissionDecisionReason. In autopilot or the cloud agent an ask is treated as a deny.', 'the tool name bash and the field toolArgs.command.'),
+    file_read: ch('preToolUse', true, true, 'the same envelope.', 'the tool name view and the field toolArgs.path.'),
+    mcp_call: ch('preToolUse', true, true, 'the same envelope.', 'the spelling server-tool of an MCP tool name.'),
+    tool_result: ch('postToolUse', false, false, 'the event name.', 'its stdin and stdout shapes. Observe-only.'),
   },
   request(kind, c, x) {
-    const b = (e) => ({ hook_event_name: e });
     switch (kind) {
       case 'prompt': return { sessionId: x.sessionId, timestamp: 1793437200000, cwd: x.cwd, prompt: c.text };
       case 'shell': return { sessionId: x.sessionId, timestamp: 1793437200000, cwd: x.cwd, toolName: 'bash', toolArgs: { command: c.command } };
       case 'file_read': return { sessionId: x.sessionId, timestamp: 1793437200000, cwd: x.cwd, toolName: 'view', toolArgs: { path: c.path } };
       case 'mcp_call': return { sessionId: x.sessionId, timestamp: 1793437200000, cwd: x.cwd, toolName: `${c.server}-${c.tool}`, toolArgs: argsOf(c) };
-      default: return { ...b('postToolUse'), sessionId: x.sessionId, timestamp: 1793437200000, cwd: x.cwd, toolName: `${c.server}-${c.tool}`, toolArgs: argsOf(c), toolResult: { textResultForLlm: resultText(c) } };
+      default: return { sessionId: x.sessionId, timestamp: 1793437200000, cwd: x.cwd, toolName: `${c.server}-${c.tool}`, toolArgs: argsOf(c), toolResult: { textResultForLlm: resultText(c) } };
     }
   },
-  // Copilot payloads carry no event name in the camelCase form, so the lab hook is installed per event: --event is passed on its command line.
-  parse(p, event) {
-    if (event === 'userPromptSubmitted' || (!event && 'prompt' in p)) return { kind: 'prompt', text: p.prompt };
-    if (event === 'postToolUse' || 'toolResult' in p) { const [server, ...rest] = String(p.toolName ?? '').split('-'); return { kind: 'tool_result', server: server || 'builtin', tool: rest.join('-') || p.toolName, args: p.toolArgs || {}, result: String(p.toolResult?.textResultForLlm ?? '') }; }
+  // The camelCase form carries no event name, so the kind is read from the fields themselves (prompt, toolResult, toolName).
+  parse(p) {
+    if ('prompt' in p) return { kind: 'prompt', text: p.prompt };
+    if ('toolResult' in p) { const [server, ...rest] = String(p.toolName ?? '').split('-'); return { kind: 'tool_result', server: server || 'builtin', tool: rest.join('-') || p.toolName, args: p.toolArgs || {}, result: String(p.toolResult?.textResultForLlm ?? '') }; }
     const t = String(p.toolName ?? ''); const a = p.toolArgs || {};
     if (t === 'bash') return { kind: 'shell', command: a.command };
     if (t === 'view') return { kind: 'file_read', path: a.path };
@@ -256,11 +264,11 @@ const antigravity = {
   managedNote: 'Documented: hooks.json in the customization directory, global at ~/.gemini/config/hooks.json. A managed or enterprise path is NOT documented in the page read, which does not match the deck claim of machine-level managed configuration: confirm with Ping before presenting it.',
   configCaveat: 'The global hooks.json location and the PreToolUse event are documented. Using it as a managed location is illustrative, UNVERIFIED.',
   channels: {
-    prompt: { event: null, canBlock: false, canAsk: false, status: DOC, caveat: 'No user-prompt event is documented (events: SessionStart, PreToolUse, PostToolUse, PreInvocation, PostInvocation, Stop), so a prompt is not seen by a hook.' },
-    shell: { event: 'PreToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Documented: stdin toolCall {name, args}, stepIdx and common fields; stdout decision (allow, auto_approve, deny, ask, force_ask, deny_unless_prior_grant) with an optional reason. The tool name run_command comes from a third-party integration, not the docs: illustrative.' },
-    file_read: { event: 'PreToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Same envelope. The read tool name and its argument names are illustrative.' },
-    mcp_call: { event: 'PreToolUse', canBlock: true, canAsk: true, status: DOC, caveat: 'Same envelope. How an MCP tool name is spelled is illustrative.' },
-    tool_result: { event: 'PostToolUse', canBlock: false, canAsk: false, status: ILL, caveat: 'The event is documented; its fields and answer are not: illustrative, UNVERIFIED. Observe-only.' },
+    prompt: ch(null, false, false, 'no user-prompt event is listed (events: SessionStart, PreToolUse, PostToolUse, PreInvocation, PostInvocation, Stop), so a prompt is not seen by a hook.'),
+    shell: ch('PreToolUse', true, true, 'stdin toolCall {name, args}, stepIdx and common fields; stdout decision (allow, auto_approve, deny, ask, force_ask, deny_unless_prior_grant) with an optional reason.', 'the tool name run_command (it comes from a third-party integration, not the docs) and the arg name command.'),
+    file_read: ch('PreToolUse', true, true, 'the same envelope.', 'the tool name view_file and its arg path.'),
+    mcp_call: ch('PreToolUse', true, true, 'the same envelope.', 'the spelling server/tool of an MCP tool name.'),
+    tool_result: ch('PostToolUse', false, false, 'the event name.', 'its fields and its answer. Observe-only.'),
   },
   request(kind, c, x) {
     switch (kind) {
@@ -295,10 +303,10 @@ export function nativeRequest(agentId, call, ctx) {
 }
 
 // The inverse: a normalized call from an agent's hook payload, or null for an event the lab does not evaluate.
-export function parsePayload(agentId, payload, event) {
+export function parsePayload(agentId, payload) {
   const a = agentById(agentId);
   if (!a || payload === null || typeof payload !== 'object' || Array.isArray(payload)) return null;
-  try { return a.parse(payload, event) || null; } catch { return null; }
+  try { return a.parse(payload) || null; } catch { return null; }
 }
 
 // What the agent can actually do with an engine decision on one kind of action.

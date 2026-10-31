@@ -10,10 +10,21 @@ export function ClaimTag({ label }) {
   return <span className="tag" data-state="warn" data-testid="claim-tag">{label || "Ping release claim, UNVERIFIED on our tenant"}</span>;
 }
 
-// documented = read in the vendor's docs at build time; illustrative = the lab's own shape, UNVERIFIED.
+// documented = read in the vendor's docs at build time; illustrative = the lab's own shape, UNVERIFIED; partly = both (the caveat says which).
+const STATUS_TEXT = { documented: "documented", partly: "partly documented, partly illustrative", illustrative: "illustrative, UNVERIFIED" };
 export function StatusTag({ status }) {
-  const doc = status === "documented";
-  return <span className="tag" data-state={doc ? "ok" : "warn"} data-testid="shape-status">{doc ? "documented" : "illustrative, UNVERIFIED"}</span>;
+  return <span className="tag" data-state={status === "documented" ? "ok" : "warn"} data-testid="shape-status">{STATUS_TEXT[status] || status}</span>;
+}
+
+// What is documented and what is illustrative about one agent's hook channel, shown beside every result.
+export function ChannelNote({ channel }) {
+  return (
+    <div className="muted" data-testid="channel-note">
+      <StatusTag status={channel.status} /> hook event <code>{channel.event}</code>.
+      {channel.documented && <span> <b>Documented:</b> {visible(channel.documented)}</span>}
+      {channel.illustrative && <span> <b>Illustrative, UNVERIFIED:</b> {visible(channel.illustrative)}</span>}
+    </div>
+  );
 }
 
 export function SourceTag({ swagger }) {

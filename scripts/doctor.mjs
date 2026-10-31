@@ -1,13 +1,13 @@
 // Preflight: the same checks GET /api/health reports from, plus whether the port is free.
 // Prints only pass/fail lines, never the value of a setting. Exit 1 on any failure. Needs no network.
 import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// Optional settings: the repo's own .env, then the one shared file (STANDALONE_ENV, default ~/Development/.env). Read only, never printed.
-for (const f of [path.join(root, '.env'), process.env.STANDALONE_ENV || path.join(os.homedir(), 'Development', '.env')]) { try { process.loadEnvFile(f); } catch { /* optional */ } }
+// Optional settings: the one shared file (STANDALONE_ENV, default ~/Development/.env). Only this lab's own key is taken. Read only, never printed.
+const { applySharedSettings } = await import(pathToFileURL(path.join(root, 'server/src/settings.js')));
+applySharedSettings();
 
 const { runChecks } = await import(pathToFileURL(path.join(root, 'server/src/doctor.js')));
 let failed = 0;

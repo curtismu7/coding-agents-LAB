@@ -21,7 +21,7 @@ export function runHookScript({ agent, payload, certSubject, gateways, failClose
     const finish = (code) => {
       if (done) return; done = true; clearTimeout(timer);
       let native = null; try { native = JSON.parse(stdout.trim()); } catch { /* not JSON */ }
-      resolve({ code, stdout, stderr, native, gateway: lines(stderr, 'LAB-GATEWAY')[0] || null, gap: lines(stderr, 'LAB-GAP')[0] || null, trace: lines(stderr, 'LAB-TRACE')[0] || null });
+      resolve({ code, stdout, stderr, native, gateway: lines(stderr, 'LAB-GATEWAY')[0] || null, gap: lines(stderr, 'LAB-GAP')[0] || null, trace: lines(stderr, 'LAB-TRACE')[0] || null, net: lines(stderr, 'LAB-NET')[0] || null });
     };
     const timer = setTimeout(() => { child.kill('SIGKILL'); finish(-1); }, killAfterMs);
     child.stdout.on('data', (c) => { if (stdout.length < 200_000) stdout += c; });

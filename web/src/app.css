@@ -101,4 +101,4 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .pat-elabel[data-now="true"] { border-color: var(--focus); font-weight: 700; }
 .pat-elabel[data-dim="true"] { opacity: 0.55; }
 @media (max-width: 900px) { .pat-canvas { height: 520px; } }
-@media (max-width: 600px) { .head__title { font-size: 18px; } .pat-canvas { height: 480px; } .panel { padding: 10px; } }
+@media (max-width: 600px) { .head__title { font-size: 18px; } .pat-canvas { height: 560px; } .panel { padding: 10px; } }

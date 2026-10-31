@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, postJson } from "../api";
 import { visible } from "../safeText";
-import { AuditTable, ClaimTag, Dialog, Findings, Hops, Json, Verdict } from "./Bits";
+import { AuditTable, ChannelNote, ClaimTag, Dialog, Findings, Hops, Json, Verdict } from "./Bits";
 
 export function ResultView({ r }) {
   if (!r.installed) return <p className="panel" data-state="warn" data-testid="untouched">{visible(r.note)}</p>;
@@ -26,6 +26,7 @@ export function ResultView({ r }) {
           <h3 className="panel__sub">3. {r.agentName}&apos;s native response (stdout of the hook)</h3>
           <p>Engine decision <span className="tag">{r.evaluation.decision}</span> becomes native <span className="tag" data-testid="native-decision">{r.outcome.native}</span></p>
           {r.outcome.note && <p className="muted" data-testid="outcome-note">{visible(r.outcome.note)}</p>}
+          <ChannelNote channel={r.channel} />
           <Json value={r.native} label="native response" testId="native-response" />
         </section>
         <section className="panel" aria-label="The permission dialog">
@@ -70,6 +71,7 @@ export default function EvaluateTab({ story, mode, config, resetSignal }) {
       <section className="panel">
         <h2 className="panel__title">Evaluate an action through an agent&apos;s hook <ClaimTag label={story.claimLabel} /></h2>
         <p className="muted" data-testid="evaluate-mode-note">{live ? "Live: the real hook script (hooks/lab-hook.mjs) is run with the agent's JSON on stdin, posts it over loopback to this server and prints the native answer. Nothing leaves this machine." : "Mock: the decision and the native answer come from a table generated from the same engine. Switch to Live to run the real hook script and to type your own action."}</p>
+        <p className="muted" data-testid="scan-limit">Limit: for any one field the gateway scans the first 4000 and the last 4000 characters; the hook trims a longer field to those two ends before posting. Something only in the middle of a very long field is not seen.</p>
         <h3 className="panel__sub">Agent</h3>
         <div className="seg" role="group" aria-label="Agent">
           {story.agents.map((a) => <button key={a.id} type="button" aria-pressed={agent === a.id} onClick={() => setAgent(a.id)} data-testid={`ev-agent-${a.id}`}>{a.name}</button>)}

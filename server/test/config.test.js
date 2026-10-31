@@ -68,3 +68,13 @@ test('a gateway value cannot break out of the generated command line: quotes, sp
   const v = validateConfig({ Gateways: ['https://a.example/x'] });
   assert.ok(generateFor('cursor', v.config).text.includes("--gateway 'https://a.example/x'"));
 });
+
+test('the default is open: FailClosed is false by default, in the default config and in an empty one', () => {
+  assert.equal(defaultConfig(DEFAULT_CAST).FailClosed, false);
+  assert.equal(validateConfig({}).config.FailClosed, false);
+  assert.equal(validateConfig({ Enabled: true }).config.FailClosed, false);
+});
+
+test('the Copilot policy body carries version 1 (tagged illustrative), the Cursor one too', () => {
+  for (const id of ['copilot', 'cursor']) assert.equal(JSON.parse(generateFor(id, defaultConfig(DEFAULT_CAST)).text).version, 1, id);
+});

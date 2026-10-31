@@ -1,27 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getJson } from "../api";
 import { ClaimTag, Json, StatusTag } from "./Bits";
 import { visible } from "../safeText";
 
 const cell = (c) => (!c.event ? "no hook event" : c.canBlock && c.canAsk ? "deny or ask" : c.canBlock ? "deny" : "observe only");
+const mark = (c) => (c.status === "documented" ? "" : c.status === "partly" ? " (partly illustrative)" : " (illustrative)");
 
 export default function AgentsTab({ story }) {
   const [agentId, setAgentId] = useState(story.agents[0].id);
   const [kind, setKind] = useState("shell");
   const agent = story.agents.find((a) => a.id === agentId);
   const ch = agent.channels.find((c) => c.kind === kind);
+  const [sources, setSources] = useState({});
+  useEffect(() => { getJson("/api/sources").then(setSources, () => {}); }, []);
   return (
     <div className="stack">
       <section className="panel">
         <h2 className="panel__title">Six agents, each through its own hook <ClaimTag /></h2>
         <p data-testid="agents-claim">{story.claims[0].claim}</p>
         <p className="muted" data-testid="legend">
-          Source discipline: every shape below is tagged <span className="tag" data-state="ok">documented</span> (read in the vendor&apos;s own documentation at build time, 2026-10-31; the sources are listed in the README) or <span className="tag" data-state="warn">illustrative, UNVERIFIED</span> (the lab&apos;s own example; never stated as fact). The caveat under each says which part is which.
+          Source discipline: every shape below is tagged <span className="tag" data-state="ok">documented</span> (read in the vendor&apos;s own documentation at build time, 2026-10-31; the sources are listed in the README) or <span className="tag" data-state="warn">illustrative, UNVERIFIED</span> (the lab&apos;s own example; never stated as fact), or <span className="tag" data-state="warn">partly documented</span> (the envelope is documented, a field or tool name is not). A matrix cell without a note is fully documented. The caveat under each says which part is which.
         </p>
         <div className="scroll"><table className="tbl" data-testid="matrix">
           <caption>What each agent&apos;s hook can do with each kind of action</caption>
           <thead><tr><th>Agent</th>{story.kinds.map((k) => <th key={k}>{story.kindLabel[k]}</th>)}</tr></thead>
           <tbody>{story.agents.map((a) => (
-            <tr key={a.id}><th scope="row">{a.name}</th>{a.channels.map((c) => <td key={c.kind} data-state={!c.event ? "none" : c.canBlock ? "ok" : "warn"}>{cell(c)}</td>)}</tr>
+            <tr key={a.id}><th scope="row">{a.name}</th>{a.channels.map((c) => <td key={c.kind} data-state={!c.event ? "none" : c.canBlock && c.status === "documented" ? "ok" : "warn"}>{cell(c)}{mark(c)}</td>)}</tr>
           ))}</tbody>
         </table></div>
       </section>
@@ -38,7 +42,9 @@ export default function AgentsTab({ story }) {
         </table></div>
         <p>{agent.managedNote}</p>
         <p className="muted" data-testid="config-caveat">{agent.configCaveat}</p>
-        <p className="muted">Sources: {agent.sources.join(", ")} (see the README, Sources).</p>
+        <div className="muted" data-testid="sources">Sources (plain text, copy from here; the lab never fetches them):
+          <ul className="plain">{agent.sources.map((id) => <li key={id}><code>{id}</code>: <code data-testid={`source-${id}`}>{sources[id] || "(loading)"}</code></li>)}</ul>
+        </div>
 
         <h3 className="panel__sub">One kind of action</h3>
         <div className="seg" role="group" aria-label="Kind of action">
@@ -49,7 +55,7 @@ export default function AgentsTab({ story }) {
           <span className="tag" data-state={ch.canBlock ? "ok" : "warn"}>{ch.canBlock ? "can refuse" : "cannot refuse"}</span>{" "}
           <span className="tag" data-state={ch.canAsk ? "ok" : "warn"}>{ch.canAsk ? "can ask" : "no ask"}</span>
         </p>
-        <p className="muted" data-testid="channel-caveat">{ch.caveat}</p>
+        <p className="muted" data-testid="channel-caveat">{ch.documented && <span><b>Documented:</b> {ch.documented} </span>}{ch.illustrative && <span><b>Illustrative, UNVERIFIED:</b> {ch.illustrative}</span>}</p>
         {ch.request ? (
           <div className="cols">
             <div><h3 className="panel__sub">What the agent writes to the hook (stdin)</h3><Json value={ch.request} label="request" testId="agent-request" /></div>

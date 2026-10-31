@@ -23,6 +23,18 @@ What it shows:
 5. **Diagram.** ReactFlow, drawn from diagram-studio/1 data loaded by name: movable boxes, Simulate, speed, Reset (restores box positions). Two diagrams: hook, gateway and native answer; and why a hook and where it stops.
 6. **Talk track,** with a "Why it matters" entry. Also in `docs/talk-track.md`.
 
+### Known limits of the detection rules
+
+The rules are the lab's own deterministic stand-ins, not Ping's detection. They are deliberately simple, and these are known gaps rather than surprises:
+
+- For any one field the gateway scans the first 4000 and the last 4000 characters; the hook trims a longer field to those two ends before posting. Something only in the middle of a very long field is not seen. (Nothing above 8000 characters in one field is ever read in full.)
+- Shell rules read a small tokenizer, not a shell: variables, aliases, base64, `eval` of a built string, scripts that delete things, heredocs and quoting tricks defeat them. They do see through `sudo`/`env`/`nohup` wrappers, absolute command paths, long flags, `$HOME`, `curl | sudo bash`, `bash <(curl ...)` and `sh -c "$(curl ...)"`.
+- Secrets are recognised by shape (AWS-style access key ids, GitHub and Slack tokens, `sk-` keys, private key blocks, bearer tokens, JWTs, and `password`/`secret`/`api_key`/`access_token` assignments of 8 or more characters). An unlabelled password in prose, a short password, or a split-up key is not found; a key split by zero-width characters is.
+- Hidden instructions are a fixed English phrase list (whitespace and case normalised), invisible or direction-changing characters (zero-width, bidi, tag; a byte-order mark only when not first), and an HTML comment addressed to the model. Other languages and paraphrases are not seen.
+- Sensitive paths are a fixed list of names, directories and extensions (`.env` and `.env.*` except templates, `.ssh`, `.aws`, `.gnupg`, `.kube`, `.docker`, `*.pem`, `*.key`, and a few more). A path reached through a symlink or a renamed copy is not.
+- A credential in a tool argument or result is an alert, never a refusal; a credential in a prompt blocks. That split is lab-invented.
+- The approved MCP server list and which agents are "found on the device" are lab policy, not a product fact.
+
 Field names: `CodingAgent` has `Enabled`, `FailClosed`, `Agents`, `Gateways` (and carries `AIGuard`, `AIIntent`, `Behaviour`, which the lab does not interpret). They come from the Privilege console swagger of 2026-10-31, definition `modelCodingAgentConfig`: schema only, which proves the names exist, not how the product behaves. Everything else (the rules, reason codes, which agents count as found on the device, the mock certificate format, the validation limits, the fallbacks) is lab-invented and tagged so.
 
 ## Run from a clone
@@ -41,7 +53,7 @@ Open http://localhost:7150/. Or in one step: `./scripts/run.sh` (installs and bu
 
 ## Settings file
 
-All standalone apps read one settings file, `~/Development/.env`, which must be mode 600. `STANDALONE_ENV` overrides its path. This lab needs none of it. It reads one optional key:
+All standalone apps read one settings file, `~/Development/.env`, which must be mode 600. `STANDALONE_ENV` overrides its path. This lab needs none of it. It parses the file (`util.parseEnv`) and takes exactly one optional key; no other key from the file ever enters the server's environment:
 
 - `CODING_AGENTS_LAB_MODE` (optional): `mock` (default) or `live`, the mode the page opens in. The header toggle switches per visit. A bare `MODE` in the shared file is ignored, because it may belong to another app.
 
@@ -90,6 +102,8 @@ The container publishes to 127.0.0.1 only (a test pins it). Use OrbStack, not Do
 ```
 npm test    # server (node --test), web (vitest, drives the UI against the real server), scripts
 ```
+
+The shared checks are run by hand, because the scripts are not shipped into this repo's CI: `bash <AI-DEMO-Standalone>/scripts/check-drift.sh .`, `bash <AI-DEMO-Standalone>/scripts/check-css.sh .` and `node <demo-kit-base>/scripts/conformance.mjs . --new`. Conformance reports two rule-18 FAILs on purpose: the deferred SE k8s manifests, and a heuristic that greps for `process.env.MODE` (this lab reads `CODING_AGENTS_LAB_MODE` instead, because the shared settings file is read by every app).
 
 On Node 26: 131 tests pass (91 server, 20 web, 20 scripts).
 

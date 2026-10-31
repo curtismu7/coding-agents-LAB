@@ -27,10 +27,10 @@ test('the repo scripts that write files write only inside the repo: they name no
 });
 
 test('the only home-directory touch in the server is reading the optional shared settings file', () => {
-  const t = fs.readFileSync(path.join(root, 'server/src/index.js'), 'utf8');
+  const t = fs.readFileSync(path.join(root, 'server/src/settings.js'), 'utf8');
   assert.equal((t.match(/homedir\(\)/g) || []).length, 1);
-  assert.ok(t.includes('loadEnvFile('));
-  for (const f of files('server/src')) if (!f.endsWith('index.js') && !f.endsWith('doctor.js')) assert.ok(!/homedir|process\.env\.HOME/.test(fs.readFileSync(path.join(root, f), 'utf8')), f);
+  assert.ok(t.includes('readFileSync(') && t.includes('parseEnv('));
+  for (const f of files('server/src')) if (!f.endsWith('settings.js')) assert.ok(!/homedir|process\.env\.HOME/.test(fs.readFileSync(path.join(root, f), 'utf8')), f);
 });
 
 test('the Web UI offers the generated text as a download of text, and posts nothing that could install it', () => {

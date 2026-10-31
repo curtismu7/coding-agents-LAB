@@ -14,8 +14,11 @@ test('six agents, each with sources, managed paths and a status and a caveat on 
     assert.ok(a.managedNote && a.configCaveat, a.id);
     for (const k of KINDS) {
       const c = a.channels[k];
-      assert.ok(['documented', 'illustrative'].includes(c.status), `${a.id}/${k}`);
-      assert.ok(c.caveat.length > 20, `${a.id}/${k} says what is and is not documented`);
+      assert.ok(['documented', 'partly', 'illustrative'].includes(c.status), `${a.id}/${k}`);
+      assert.ok(c.documented || c.illustrative, `${a.id}/${k} says what is documented or illustrative`);
+      assert.equal(c.status === 'documented', !c.illustrative, `${a.id}/${k}: documented means nothing illustrative`);
+      assert.equal(c.status === 'illustrative', !c.documented, `${a.id}/${k}`);
+      assert.ok(c.caveat.length > 20);
     }
   }
 });
@@ -99,4 +102,31 @@ test('unreachable gateway: fail open proceeds with a gap, fail closed refuses wh
 
 test('hostile payloads parse to null or a call, never throw', () => {
   for (const id of AGENT_IDS) for (const p of [null, 'x', [], {}, { hook_event_name: 5, tool_name: {}, tool_input: 'x' }, { toolCall: 3 }, { toolName: [] }]) assert.doesNotThrow(() => parsePayload(id, p));
+});
+
+test('per-channel truth: what is documented and what is illustrative is stated for each channel, not for the whole agent', () => {
+  const st = (id, k) => AGENTS.find((a) => a.id === id).channels[k].status;
+  assert.equal(st('claude-code', 'prompt'), 'documented');
+  for (const k of ['shell', 'file_read', 'mcp_call']) assert.equal(st('claude-code', k), 'partly', `claude ${k}: the tool name strings are not documented`);
+  for (const k of ['file_read', 'mcp_call']) { assert.equal(st('gemini-cli', k), 'partly'); assert.equal(st('copilot', k), 'partly'); assert.equal(st('antigravity', k), 'partly'); }
+  assert.match(AGENTS.find((a) => a.id === 'gemini-cli').channels.mcp_call.illustrative, /mcp_context/);
+  assert.equal(st('cursor', 'file_read'), 'documented');
+  assert.equal(st('cursor', 'tool_result'), 'partly');
+  assert.equal(st('codex', 'file_read'), 'partly');
+  assert.match(AGENTS.find((a) => a.id === 'claude-code').managedNote, /defer/);
+});
+
+test('an ask degrades to a refusal where the agent has no ask: Codex and Gemini shell, Cursor file reads; Claude and Copilot keep it', () => {
+  for (const [agent, kind] of [['codex', 'shell'], ['gemini-cli', 'shell'], ['codex', 'mcp_call'], ['gemini-cli', 'file_read'], ['cursor', 'file_read']]) {
+    const o = nativeOutcome(agent, kind, 'ask');
+    assert.deepEqual([o.native, o.degraded], ['deny', true], `${agent}/${kind}`);
+  }
+  for (const [agent, kind] of [['claude-code', 'shell'], ['copilot', 'shell'], ['cursor', 'shell'], ['cursor', 'mcp_call'], ['antigravity', 'file_read']]) assert.equal(nativeOutcome(agent, kind, 'ask').native, 'ask', `${agent}/${kind}`);
+});
+
+test('Claude PostToolUse: a built-in tool result keeps its tool name; an MCP result is split into server and tool', () => {
+  const b = parsePayload('claude-code', { hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_input: { command: 'ls' }, tool_response: 'out' });
+  assert.deepEqual([b.kind, b.server, b.tool, b.result], ['tool_result', 'builtin', 'Bash', 'out']);
+  const m = parsePayload('claude-code', { hook_event_name: 'PostToolUse', tool_name: 'mcp__srv__do__it', tool_input: {}, tool_response: { content: [{ type: 'text', text: 'hi' }] } });
+  assert.deepEqual([m.server, m.tool, m.result], ['srv', 'do__it', 'hi']);
 });

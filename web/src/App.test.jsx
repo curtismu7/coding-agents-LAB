@@ -87,6 +87,17 @@ describe("agents tab", () => {
     await click("agent-claude-code");
     expect(screen.getByTestId("resp-ask")).toHaveTextContent('"permissionDecision": "ask"');
   }, 60000);
+
+  it("marks what is illustrative in the matrix, says precisely what is documented per channel, and shows the sources as plain text", async () => {
+    await mount();
+    const matrix = within(screen.getByTestId("matrix"));
+    expect(matrix.getAllByText(/partly illustrative/).length).toBeGreaterThan(5);
+    await click("agent-gemini-cli"); await click("kind-mcp_call");
+    expect(screen.getByTestId("channel-caveat")).toHaveTextContent(/Documented:.*mcp_context object exists/);
+    expect(screen.getByTestId("channel-caveat")).toHaveTextContent(/Illustrative, UNVERIFIED:.*field names inside mcp_context/);
+    await waitFor(() => expect(screen.getByTestId("source-gemini-cli-hooks")).toHaveTextContent(/^https:\/\/geminicli\.com\/docs\/hooks\/$/), T);
+    expect(screen.getByTestId("source-gemini-cli-hooks").closest("a")).toBeNull();
+  }, 60000);
 });
 
 describe("evaluate tab, Mock", () => {
@@ -100,6 +111,8 @@ describe("evaluate tab, Mock", () => {
     expect(screen.getByTestId("dialog")).toHaveAttribute("data-state", "denied");
     expect(screen.getByTestId("dialog-reason")).toHaveTextContent(/never reaches the model provider|before it reaches the model provider/);
     expect(screen.getByTestId("who")).toHaveTextContent("maya.chen@fabrikam.example");
+    expect(screen.getByTestId("channel-note")).toHaveTextContent(/documented/);
+    expect(screen.getByTestId("scan-limit")).toHaveTextContent(/first 4000 and the last 4000/);
     expect(screen.getByTestId("cert")).toHaveTextContent("(MOCK)");
     expect(screen.getByTestId("action")).toHaveTextContent("sk-MOCK-");
   }, 60000);
@@ -187,6 +200,7 @@ describe("gateway down tab", () => {
       await click("gw-run");
       await waitFor(() => expect(screen.getByTestId("gap-line")).toHaveTextContent(/Proceeded/), T);
       expect(screen.getByTestId("dialog")).toHaveAttribute("data-state", "proceeds");
+      expect(screen.getByTestId("channel-note")).toHaveTextContent(/hook event/);
       await click("failclosed-toggle");
       await click("gw-run");
       await waitFor(() => expect(screen.getByTestId("gap-line")).toHaveTextContent(/Refused/), T);
@@ -243,6 +257,12 @@ describe("config tab", () => {
     await waitFor(() => expect(screen.getByTestId("cfg-valid")).toBeInTheDocument(), T);
     await waitFor(() => expect(screen.getByTestId("gen-cursor")).toHaveTextContent("gw.fabrikam.example"), T);
   }, 90000);
+
+  it("says the product default is OFF beside the toggle, while this lab opens it on", async () => {
+    await mount();
+    await tab("Config");
+    expect(screen.getByText(/product default is OFF until a tenant asks/)).toBeInTheDocument();
+  }, 30000);
 
   it("the JSON editor applies a valid config and refuses invalid JSON", async () => {
     await mount();

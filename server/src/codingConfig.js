@@ -102,7 +102,7 @@ export function generateFor(agentId, config) {
   else if (agentId === 'codex') {
     format = 'toml + json';
     text = `# requirements.toml (managed). Hook scripts must live under managed_dir. Location of this file: not documented in the page read.\nmanaged_dir = "<LAB_MANAGED_DIR>"\n\n# hooks.json (same directory)\n${hooksJson(evs, cmd, ['PreToolUse', 'PostToolUse'])}`;
-  } else if (agentId === 'copilot') text = JSON.stringify({ hooks: Object.fromEntries(evs.map((ev) => [ev, [{ type: 'command', command: cmd }]])) }, null, 2);
+  } else if (agentId === 'copilot') text = JSON.stringify({ version: 1, hooks: Object.fromEntries(evs.map((ev) => [ev, [{ type: 'command', command: cmd }]])) }, null, 2);
   else if (agentId === 'antigravity') text = hooksJson(evs, `${cmd}`, ['PreToolUse', 'PostToolUse']);
   else text = hooksJson(evs, cmd, ['BeforeTool', 'AfterTool']);
   const path0 = agentId === 'copilot' ? '/etc/github-copilot/policy.d/coding-agents-lab.json' : agentId === 'antigravity' ? '~/.gemini/config/hooks.json' : path;

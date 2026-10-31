@@ -9,6 +9,6 @@ test('the entry installs the netguard first, before it can open any socket', () 
   const m = /^installNetguard\(\);/m.exec(src);
   assert.ok(m, 'installNetguard() is called as a statement');
   const guard = m.index;
-  for (const later of ['runChecks()', 'startHttpServer({', 'loadEnvFile(']) assert.ok(src.indexOf(later) > guard, `${later} comes after the guard`);
+  for (const later of ['runChecks()', 'startHttpServer({', 'applySharedSettings(']) assert.ok(src.indexOf(later) > guard, `${later} comes after the guard`);
   assert.ok(src.indexOf('import { installNetguard }') < guard);
 });

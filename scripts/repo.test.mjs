@@ -90,3 +90,14 @@ test('docs never use the word "door"', () => {
 test('the lab ships no k8s manifests (deferred by the owner, 2026-10-31)', () => {
   assert.ok(!fs.existsSync(path.join(root, 'k8s')));
 });
+
+test('README sections follow the standard order (Troubleshooting, Sources, Ownership, Not done) and list the known detection limits; conformance is said to be run by hand', () => {
+  const r = read('README.md');
+  const at = (h) => r.indexOf(`\n## ${h}`);
+  const order = ['What is simulated', 'Run from a clone', 'Settings file', 'Ports, and what to do', 'Mock and live modes', 'Health, doctor and reset', 'Docker', 'Tests', 'Troubleshooting', 'Sources', 'Ownership', 'Not done'].map(at);
+  assert.ok(order.every((i) => i > 0), order.join());
+  assert.deepEqual([...order].sort((a, b) => a - b), order, 'sections are in order');
+  assert.match(r, /### Known limits of the detection rules/);
+  assert.match(r, /run by hand/);
+  assert.match(r, /util\.parseEnv/);
+});

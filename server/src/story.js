@@ -13,7 +13,7 @@ const SAMPLE = { prompt: 'secret-prompt', shell: 'destructive-shell', file_read:
 function agentView(a, cast) {
   const channels = KINDS.map((kind) => {
     const ch = a.channels[kind];
-    const row = { kind, label: KIND_LABEL[kind], event: ch.event, canBlock: ch.canBlock, canAsk: ch.canAsk, status: ch.status, caveat: ch.caveat };
+    const row = { kind, label: KIND_LABEL[kind], event: ch.event, canBlock: ch.canBlock, canAsk: ch.canAsk, status: ch.status, documented: ch.documented, illustrative: ch.illustrative, caveat: ch.caveat };
     if (!ch.event) return { ...row, request: null, responses: {} };
     const { call } = scenarioCall(cast, SAMPLE[kind]);
     const responses = { allow: respond(a.id, kind, 'allow', '') };

@@ -1,15 +1,14 @@
-import os from 'node:os';
-import path from 'node:path';
 import { installNetguard } from './netguard.js';
 import { startHttpServer, createApp } from './app.js';
 import { allPassed, runChecks } from './doctor.js';
 import { assertBindAllowed, bindHost, resolvePort } from './safety.js';
 import { modeFrom } from './config.js';
+import { applySharedSettings } from './settings.js';
 
 installNetguard(); // before anything else can open a socket
 
-// The one shared settings file (rulebook): ~/Development/.env, or the path in STANDALONE_ENV. Optional; never printed.
-try { process.loadEnvFile(process.env.STANDALONE_ENV || path.join(os.homedir(), 'Development', '.env')); } catch { /* no settings file */ }
+// The one shared settings file (rulebook): ~/Development/.env, or STANDALONE_ENV. Optional; only this lab's own key is taken; never printed.
+applySharedSettings();
 
 const checks = await runChecks();
 if (!allPassed(checks)) {

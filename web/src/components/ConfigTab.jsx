@@ -42,7 +42,7 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
         <div className="cols">
           <div className="form">
             <label className="check"><input type="checkbox" checked={config.Enabled} onChange={(e) => propose({ ...config, Enabled: e.target.checked })} data-testid="cfg-enabled" /> Enabled <SourceTag swagger /></label>
-            <p className="muted">{story.configFields[0].note}</p>
+            <p className="muted">{story.configFields[0].note} The product default is OFF until a tenant asks; this lab opens it ON so the demo has something to show.</p>
             <label className="check"><input type="checkbox" checked={config.FailClosed} onChange={(e) => propose({ ...config, FailClosed: e.target.checked })} data-testid="cfg-failclosed" /> FailClosed <SourceTag swagger /></label>
             <p className="muted">{story.configFields[1].note}</p>
             <fieldset className="fieldset">

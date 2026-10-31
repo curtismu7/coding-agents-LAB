@@ -19,22 +19,3 @@ export function newTrace(incoming, rand = randomBytes) {
   const span = () => rand(8).toString('hex').replace(/^0{16}$/, '0000000000000001');
   return { traceId: p ? p.traceId : rand(16).toString('hex').replace(/^0{32}$/, `${'0'.repeat(31)}1`), parentId: p ? p.parentId : null, span };
 }
-
-// The three mock hops of one evaluation, with the raw request and response text of each.
-export function buildHops({ trace, cast, decision, reasonCodes, scenario }) {
-  const host = `mcp.${cast.castHost}.example`;
-  const ids = [trace.span(), trace.span(), trace.span()];
-  const tp = ids.map((id) => formatTraceparent(trace.traceId, id));
-  const status = decision === 'allow' ? '200 OK' : '403 Forbidden';
-  return [
-    { n: 1, from: 'agent', to: 'app', label: 'Agent calls the P1 Privilege Agent App', traceparent: tp[0],
-      request: `POST https://${host}/orders/mcp\nAuthorization: Bearer <MOCK-ISSUED token, scenario: ${scenario}>\ntraceparent: ${tp[0]}\ncontent-type: application/json`,
-      response: `HTTP/1.1 ${status}\ntraceparent: ${tp[0]}\n(allow forwards tools/call to the MCP server; deny stops here)` },
-    { n: 2, from: 'app', to: 'rule', label: 'App flattens claims and asks the rule', traceparent: tp[1],
-      request: `RULE-EVAL (mock, in process)\ntraceparent: ${tp[1]}\nrequiredClaims: client_id, act.sub`,
-      response: `decision: ${decision}\nreason codes: ${reasonCodes.join(', ')}` },
-    { n: 3, from: 'rule', to: 'app', label: 'Rule answers allow or deny', traceparent: tp[2],
-      request: `RULE-RESULT (mock)\ntraceparent: ${tp[2]}`,
-      response: `decision: ${decision}` },
-  ];
-}
