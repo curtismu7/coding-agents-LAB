@@ -22,6 +22,8 @@ function rawHook({ args = [], stdin = '', env = {}, cwd }) {
     let stdout = ''; let stderr = '';
     c.stdout.on('data', (d) => { stdout += d; }); c.stderr.on('data', (d) => { stderr += d; });
     c.on('close', (code) => resolve({ code, stdout, stderr }));
+    // The hook stops reading at its input cap, so a writer of an oversize payload can get EPIPE (seen on Linux CI).
+    c.stdin.on('error', () => {});
     c.stdin.end(stdin);
   });
 }
