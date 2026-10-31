@@ -1,0 +1,29 @@
+{
+  "name": "coding-agents-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Coding Agents: inspection inside Claude Code, Cursor, Codex, Gemini CLI, GitHub Copilot and Antigravity through each agent's own hook interface. A simulation of Ping release claims (UNVERIFIED on our tenant): mock tables, or a local real engine with a real hook script. No tenant, no outbound network.",
+  "license": "MIT",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "start": "npm start -w server",
+    "build": "npm run build -w web",
+    "test": "npm test -w server && npm test -w web && node --test scripts/*.test.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "reset": "node scripts/reset.mjs",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "talk-track": "node scripts/build-talk-track.mjs",
+    "mock-table": "node scripts/build-mock-table.mjs",
+    "content-pack": "node scripts/build-content-pack.mjs && node scripts/validate-content-pack.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0"
+  }
+}

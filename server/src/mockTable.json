@@ -1,0 +1,2804 @@
+{
+ "finance": {
+  "secret-prompt": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "continue": false,
+     "user_message": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "GitHub Copilot's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": false,
+    "outcome": {
+     "native": "none",
+     "covered": false,
+     "note": "Antigravity exposes no hook event for this kind of action, so the gateway never sees it."
+    }
+   }
+  },
+  "destructive-shell": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "permission": "deny",
+     "user_message": "The command rm -rf on the home directory, the root or a wildcard.",
+     "agent_message": "Policy: The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "deny",
+     "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   }
+  },
+  "shell-chain": {
+   "claude-code": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  },
+  "sensitive-read": {
+   "claude-code": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "ask",
+      "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permission": "ask",
+     "user_message": "The path is inside a credentials directory (.aws).",
+     "agent_message": "Policy: The path is inside a credentials directory (.aws)."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Codex has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Gemini CLI has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The path is inside a credentials directory (.aws)."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "ask",
+     "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "decision": "ask",
+     "reason": "The path is inside a credentials directory (.aws)."
+    }
+   }
+  },
+  "mcp-unlisted": {
+   "claude-code": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "ask",
+      "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permission": "ask",
+     "user_message": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+     "agent_message": "Policy: The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Codex has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Gemini CLI has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "ask",
+     "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "decision": "ask",
+     "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   }
+  },
+  "hidden-instructions": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+     "hookSpecificOutput": {
+      "hookEventName": "PostToolUse",
+      "updatedToolOutput": "[withheld by policy] The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "Cursor's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "GitHub Copilot's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "Antigravity's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  },
+  "benign": {
+   "claude-code": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  }
+ },
+ "health": {
+  "secret-prompt": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "continue": false,
+     "user_message": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "GitHub Copilot's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": false,
+    "outcome": {
+     "native": "none",
+     "covered": false,
+     "note": "Antigravity exposes no hook event for this kind of action, so the gateway never sees it."
+    }
+   }
+  },
+  "destructive-shell": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "permission": "deny",
+     "user_message": "The command rm -rf on the home directory, the root or a wildcard.",
+     "agent_message": "Policy: The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "deny",
+     "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   }
+  },
+  "shell-chain": {
+   "claude-code": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  },
+  "sensitive-read": {
+   "claude-code": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "ask",
+      "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permission": "ask",
+     "user_message": "The path is inside a credentials directory (.aws).",
+     "agent_message": "Policy: The path is inside a credentials directory (.aws)."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Codex has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Gemini CLI has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The path is inside a credentials directory (.aws)."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "ask",
+     "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "decision": "ask",
+     "reason": "The path is inside a credentials directory (.aws)."
+    }
+   }
+  },
+  "mcp-unlisted": {
+   "claude-code": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "ask",
+      "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permission": "ask",
+     "user_message": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+     "agent_message": "Policy: The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Codex has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Gemini CLI has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "ask",
+     "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "decision": "ask",
+     "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   }
+  },
+  "hidden-instructions": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+     "hookSpecificOutput": {
+      "hookEventName": "PostToolUse",
+      "updatedToolOutput": "[withheld by policy] The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "Cursor's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "GitHub Copilot's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "Antigravity's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  },
+  "benign": {
+   "claude-code": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  }
+ },
+ "retail": {
+  "secret-prompt": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "continue": false,
+     "user_message": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-SECRET-IN-PROMPT",
+    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "findings": [
+     {
+      "id": "secret-in-prompt",
+      "effect": "block",
+      "label": "A credential in a prompt",
+      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "GitHub Copilot's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": false,
+    "outcome": {
+     "native": "none",
+     "covered": false,
+     "note": "Antigravity exposes no hook event for this kind of action, so the gateway never sees it."
+    }
+   }
+  },
+  "destructive-shell": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "permission": "deny",
+     "user_message": "The command rm -rf on the home directory, the root or a wildcard.",
+     "agent_message": "Policy: The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "deny",
+     "permissionDecisionReason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-DESTRUCTIVE-COMMAND",
+    "reason": "The command rm -rf on the home directory, the root or a wildcard.",
+    "findings": [
+     {
+      "id": "destructive-command",
+      "effect": "block",
+      "label": "A destructive command",
+      "detail": "The command rm -rf on the home directory, the root or a wildcard."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The command rm -rf on the home directory, the root or a wildcard."
+    }
+   }
+  },
+  "shell-chain": {
+   "claude-code": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "alert",
+    "reasonCode": "ALERT-SHELL-CHAIN-EXFIL",
+    "reason": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it.",
+    "findings": [
+     {
+      "id": "shell-chain-exfil",
+      "effect": "alert",
+      "label": "A chained command that sends data out",
+      "detail": "Shell metacharacters chain a data source into an upload tool. It proceeds; the audit trail keeps it."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  },
+  "sensitive-read": {
+   "claude-code": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "ask",
+      "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permission": "ask",
+     "user_message": "The path is inside a credentials directory (.aws).",
+     "agent_message": "Policy: The path is inside a credentials directory (.aws)."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Codex has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Gemini CLI has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The path is inside a credentials directory (.aws)."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "ask",
+     "permissionDecisionReason": "The path is inside a credentials directory (.aws)."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-SENSITIVE-PATH",
+    "reason": "The path is inside a credentials directory (.aws).",
+    "findings": [
+     {
+      "id": "sensitive-path",
+      "effect": "ask",
+      "label": "A read of a sensitive path",
+      "detail": "The path is inside a credentials directory (.aws)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "decision": "ask",
+     "reason": "The path is inside a credentials directory (.aws)."
+    }
+   }
+  },
+  "mcp-unlisted": {
+   "claude-code": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "ask",
+      "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permission": "ask",
+     "user_message": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+     "agent_message": "Policy: The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Codex has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "hookSpecificOutput": {
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "deny",
+      "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true,
+     "degraded": true,
+     "note": "Gemini CLI has no working ask for this hook, so the lab returns a refusal instead (lab-invented fallback)."
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "permissionDecision": "ask",
+     "permissionDecisionReason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "ask",
+    "reasonCode": "ASK-UNLISTED-MCP-SERVER",
+    "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list.",
+    "findings": [
+     {
+      "id": "unlisted-mcp-server",
+      "effect": "ask",
+      "label": "An MCP server the tenant has not approved",
+      "detail": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "ask",
+     "covered": true
+    },
+    "native": {
+     "decision": "ask",
+     "reason": "The MCP server \"notes-sync\" is not on the tenant's approved list."
+    }
+   }
+  },
+  "hidden-instructions": {
+   "claude-code": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+     "hookSpecificOutput": {
+      "hookEventName": "PostToolUse",
+      "updatedToolOutput": "[withheld by policy] The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    }
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "Cursor's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "block",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+    }
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "deny",
+     "covered": true
+    },
+    "native": {
+     "decision": "deny",
+     "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "GitHub Copilot's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "deny",
+    "reasonCode": "DENY-HIDDEN-INSTRUCTIONS",
+    "reason": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model).",
+    "findings": [
+     {
+      "id": "hidden-instructions",
+      "effect": "block",
+      "label": "Hidden instructions in a tool result",
+      "detail": "The result contains text addressed to the model (phrase: \"ignore all previous instructions\"; phrase: \"do not tell the user\"; an HTML comment addressed to the model)."
+     }
+    ],
+    "decidedBy": "deterministic rules",
+    "outcome": {
+     "native": "allow",
+     "covered": true,
+     "unenforceable": true,
+     "note": "Antigravity's hook for this event cannot refuse (documented). The action proceeds; the finding is an alert in the audit trail."
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  },
+  "benign": {
+   "claude-code": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "cursor": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "permission": "allow"
+    }
+   },
+   "codex": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "gemini-cli": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   },
+   "copilot": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {}
+   },
+   "antigravity": {
+    "covered": true,
+    "decision": "allow",
+    "reasonCode": "ALLOW",
+    "reason": "Nothing risky found.",
+    "findings": [],
+    "decidedBy": "none",
+    "outcome": {
+     "native": "allow",
+     "covered": true
+    },
+    "native": {
+     "decision": "allow"
+    }
+   }
+  }
+ }
+}

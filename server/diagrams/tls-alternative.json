@@ -1,0 +1,146 @@
+{
+  "schema": "diagram-studio/1",
+  "id": "tls-alternative",
+  "title": "Why a hook, and where it stops",
+  "lede": "Inspecting a coding agent otherwise means terminating TLS. A hook avoids it but only covers agents it is installed into. Ping release claim, UNVERIFIED on our tenant. Simulated.",
+  "groups": {
+    "laptop": {
+      "label": "The developer's laptop",
+      "color": "dark"
+    },
+    "proxy": {
+      "label": "The alternative the hook avoids",
+      "color": "amber"
+    },
+    "gateway": {
+      "label": "Gateway (P1 Privilege Agent App)",
+      "color": "red"
+    },
+    "provider": {
+      "label": "Model provider",
+      "color": "grey"
+    }
+  },
+  "nodes": [
+    {
+      "id": "agent",
+      "label": "Coding agent",
+      "group": "laptop",
+      "x": 0,
+      "y": 160
+    },
+    {
+      "id": "cert",
+      "label": "A root certificate on every developer machine",
+      "group": "proxy",
+      "x": 300,
+      "y": 0
+    },
+    {
+      "id": "proxy",
+      "label": "TLS-terminating proxy with a decryption policy",
+      "group": "proxy",
+      "x": 300,
+      "y": 320
+    },
+    {
+      "id": "hook",
+      "label": "Hook in the agent's own managed configuration",
+      "group": "laptop",
+      "x": 300,
+      "y": 160
+    },
+    {
+      "id": "gw",
+      "label": "P1 Privilege Agent App",
+      "group": "gateway",
+      "x": 640,
+      "y": 160
+    },
+    {
+      "id": "model",
+      "label": "Model provider (never sees a blocked prompt)",
+      "group": "provider",
+      "x": 940,
+      "y": 160
+    }
+  ],
+  "edges": [
+    {
+      "source": "agent",
+      "target": "cert",
+      "label": "to inspect TLS you must trust a new certificate",
+      "dashed": true
+    },
+    {
+      "source": "cert",
+      "target": "proxy",
+      "label": "then decrypt every connection",
+      "dashed": true
+    },
+    {
+      "source": "agent",
+      "target": "hook",
+      "label": "hook event, no TLS inspection"
+    },
+    {
+      "source": "hook",
+      "target": "gw",
+      "label": "event + identity and device"
+    },
+    {
+      "source": "gw",
+      "target": "hook",
+      "label": "allow, deny or ask"
+    },
+    {
+      "source": "gw",
+      "target": "model",
+      "label": "only what policy allowed can leave"
+    }
+  ],
+  "steps": [
+    {
+      "title": "The usual way to inspect an agent",
+      "what": "Terminate TLS: install a certificate on every developer machine and write a decryption policy for the traffic.",
+      "edges": [
+        0
+      ]
+    },
+    {
+      "title": "What that costs",
+      "what": "A proxy that decrypts everything, a certificate to distribute and keep trusted, and a decryption policy to maintain.",
+      "edges": [
+        1
+      ]
+    },
+    {
+      "title": "The hook avoids all of it",
+      "what": "The agent hands the event to its own hook before anything is sent. There is no certificate to trust and no decryption.",
+      "edges": [
+        2
+      ]
+    },
+    {
+      "title": "The gateway decides",
+      "what": "Same gateway, same policies, same detection as LLM and MCP traffic.",
+      "edges": [
+        3
+      ]
+    },
+    {
+      "title": "The answer returns to the agent",
+      "what": "In the agent's native shape.",
+      "edges": [
+        4
+      ]
+    },
+    {
+      "title": "Where it stops",
+      "what": "A hook only covers agents it is installed into. An agent that is not on the list is not covered, which is why the endpoint sensor still looks for the ones that are not. Ping release claim, UNVERIFIED on our tenant.",
+      "edges": [
+        5
+      ]
+    }
+  ]
+}

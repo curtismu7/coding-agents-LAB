@@ -1,0 +1,150 @@
+{
+  "schema": "diagram-studio/1",
+  "id": "hook-flow",
+  "title": "Coding agents: a hook, the gateway, the agent's own answer",
+  "lede": "Each agent is covered through its own hook interface in the machine-level managed configuration. The decision returns in the agent's native shape. Ping release claim, UNVERIFIED on our tenant. Simulated.",
+  "groups": {
+    "laptop": {
+      "label": "The developer's laptop",
+      "color": "dark"
+    },
+    "gateway": {
+      "label": "Gateway (P1 Privilege Agent App)",
+      "color": "red"
+    },
+    "policy": {
+      "label": "Policy and detection",
+      "color": "blue"
+    },
+    "audit": {
+      "label": "Audit",
+      "color": "grey"
+    }
+  },
+  "nodes": [
+    {
+      "id": "agent",
+      "label": "Coding agent ({{castAgentId}}'s laptop {{castDevice}})",
+      "group": "laptop",
+      "x": 0,
+      "y": 160
+    },
+    {
+      "id": "hook",
+      "label": "Hook (from the managed configuration)",
+      "group": "laptop",
+      "x": 300,
+      "y": 160
+    },
+    {
+      "id": "gw",
+      "label": "P1 Privilege Agent App",
+      "group": "gateway",
+      "x": 620,
+      "y": 160
+    },
+    {
+      "id": "rules",
+      "label": "Same policies and detection as LLM and MCP traffic",
+      "group": "policy",
+      "x": 620,
+      "y": -20
+    },
+    {
+      "id": "audit",
+      "label": "Audit trail: who, what, which laptop",
+      "group": "audit",
+      "x": 930,
+      "y": 160
+    }
+  ],
+  "edges": [
+    {
+      "source": "agent",
+      "target": "hook",
+      "label": "event JSON on stdin"
+    },
+    {
+      "source": "hook",
+      "target": "gw",
+      "label": "event + identity and device from the certificate"
+    },
+    {
+      "source": "gw",
+      "target": "rules",
+      "label": "prompt, command, file read, MCP call, tool result"
+    },
+    {
+      "source": "rules",
+      "target": "gw",
+      "label": "allow, alert, ask or deny"
+    },
+    {
+      "source": "gw",
+      "target": "audit",
+      "label": "every evaluation recorded"
+    },
+    {
+      "source": "gw",
+      "target": "hook",
+      "label": "decision"
+    },
+    {
+      "source": "hook",
+      "target": "agent",
+      "label": "the agent's native allow, deny or ask",
+      "dashed": false
+    }
+  ],
+  "steps": [
+    {
+      "title": "The agent fires its hook",
+      "what": "Before a prompt is sent, a shell command runs, a file is read or an MCP tool is called (and after a tool returns), the agent writes the event as JSON to the hook's stdin. The hook is in the machine-level managed configuration, so the developer installed nothing.",
+      "edges": [
+        0
+      ]
+    },
+    {
+      "title": "The hook asks the gateway",
+      "what": "The hook posts the event with the developer's identity and the device, taken from the machine's certificate. If the gateway cannot be reached the hook follows its failure policy: keep working and record the gap, or refuse when the tenant set FailClosed.",
+      "edges": [
+        1
+      ]
+    },
+    {
+      "title": "The same detection runs",
+      "what": "Secrets, shell metacharacters and destructive commands, sensitive paths, unapproved MCP servers and hidden instructions are evaluated by the same gateway, policies and detection as LLM and MCP traffic.",
+      "edges": [
+        2
+      ]
+    },
+    {
+      "title": "A decision comes back",
+      "what": "Deny for a credential in a prompt, ask for a sensitive read, alert for a risky argument that should not interrupt local work, allow otherwise.",
+      "edges": [
+        3
+      ]
+    },
+    {
+      "title": "It is recorded",
+      "what": "One audit trail across every surface: who ran what on which laptop, with prompt text redacted.",
+      "edges": [
+        4
+      ]
+    },
+    {
+      "title": "The decision goes back to the hook",
+      "what": "The gateway answers the hook.",
+      "edges": [
+        5
+      ]
+    },
+    {
+      "title": "The agent answers in its own language",
+      "what": "The hook prints that agent's native allow, deny or ask, so a refusal appears in the developer's normal permission dialog with the reason, not as an error.",
+      "edges": [
+        6
+      ]
+    }
+  ]
+}
