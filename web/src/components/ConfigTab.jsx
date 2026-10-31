@@ -19,15 +19,16 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
   useEffect(() => { setGwText(config.Gateways.join("\n")); setJsonText(JSON.stringify(config, null, 2)); }, [resetSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Validate a candidate; accept it as the config only when valid.
-  const propose = (next) => {
+  // passive: only show the validation result (used when the tab opens); it never replaces what the visitor is typing.
+  const propose = (next, passive = false) => {
     const mine = ++seq.current;
     postJson("/api/config", { config: next, vertical: story.vertical }).then(({ body }) => {
       if (mine !== seq.current) return;
       setCheck({ ok: body.ok, errors: body.errors || [], warnings: body.warnings || [], generated: body.generated || [] });
-      if (body.ok) { setConfig(body.config); setJsonText(JSON.stringify(body.config, null, 2)); setJsonError(null); }
+      if (body.ok && !passive) { setConfig(body.config); setJsonText(JSON.stringify(body.config, null, 2)); setJsonError(null); }
     }, () => setCheck({ ok: false, errors: [{ field: "(request)", message: "the server did not answer" }], warnings: [], generated: [] }));
   };
-  useEffect(() => { propose(config); }, [story.vertical, resetSignal]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { propose(config, true); }, [story.vertical, resetSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setAgent = (id, on) => { const next = { ...config, Agents: { ...config.Agents, [id]: on } }; propose(next); };
   const setScope = (all) => propose({ ...config, Agents: all ? {} : Object.fromEntries(story.agents.map((a) => [a.id, true])) });
