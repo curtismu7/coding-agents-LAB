@@ -36,7 +36,7 @@ export function Verdict({ evaluation }) {
 export function Findings({ findings }) {
   if (!findings.length) return <p className="muted" data-testid="no-findings">No rule fired.</p>;
   return (
-    <div className="scroll"><table className="tbl" data-testid="findings">
+    <div className="scroll"><table className="tbl tbl--wide" data-testid="findings">
       <thead><tr><th>Rule</th><th>Effect</th><th>Why</th></tr></thead>
       <tbody>{findings.map((f) => <tr key={f.id}><td><code>{f.id}</code></td><td><span className="tag" data-state={f.effect === "block" ? "bad" : "warn"}>{f.effect}</span></td><td>{visible(f.detail)}</td></tr>)}</tbody>
     </table></div>
@@ -74,7 +74,7 @@ export function Hops({ hops, traceId }) {
 
 export function AuditTable({ audit, caption }) {
   return (
-    <div className="scroll"><table className="tbl" data-testid="audit">
+    <div className="scroll"><table className="tbl tbl--wide" data-testid="audit">
       <caption>{caption}</caption>
       <thead><tr><th>Developer</th><th>Device</th><th>Agent</th><th>Action</th><th>Decision</th></tr></thead>
       <tbody>

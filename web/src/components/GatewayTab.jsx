@@ -6,7 +6,7 @@ import { ResultView } from "./EvaluateTab";
 
 function GapTable({ gaps }) {
   return (
-    <div className="scroll"><table className="tbl" data-testid="gaps">
+    <div className="scroll"><table className="tbl tbl--wide" data-testid="gaps">
       <caption>Recorded gaps in this workspace (for review)</caption>
       <thead><tr><th>When</th><th>Developer</th><th>Device</th><th>Agent</th><th>Action</th><th>Outcome</th></tr></thead>
       <tbody>

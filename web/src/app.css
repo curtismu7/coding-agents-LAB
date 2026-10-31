@@ -42,6 +42,8 @@ textarea { width: 100%; display: block; font-family: var(--font-mono); font-size
 .tbl { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
 .tbl caption { text-align: left; font-weight: 700; padding-bottom: 4px; color: var(--text); }
 .tbl th, .tbl td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+.tbl .tag { white-space: nowrap; }
+.tbl--wide { min-width: 560px; }
 .tbl td[data-state="ok"] { border-left: 4px solid var(--status-ok); }
 .tbl td[data-state="warn"] { border-left: 4px solid var(--status-warn); }
 .tbl td[data-state="none"] { border-left: 4px solid var(--danger-text); }
