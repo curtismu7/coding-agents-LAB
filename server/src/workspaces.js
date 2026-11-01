@@ -6,10 +6,21 @@ export const DEFAULT_WORKSPACE = 'default';
 export const MAX_AUDIT = 50;
 export const MAX_GAPS = 50;
 
+// An id is lowercase letters, digits and hyphens, 1 to 40. It is echoed in answers, so it must not become a place to park a secret:
+// an id with 24 or more hex characters in a row (a hash or key) or with a hyphen-separated part that names a credential or starts a
+// token (sk-..., pw-..., ghp-..., token-..., password-...) is refused (400 bad_workspace) and never echoed. The page makes a new id
+// and asks again (web/src/workspace.js applies the same rule to a saved id; a test compares the two on a table).
+const CREDENTIAL_PARTS = new Set(['sk', 'pk', 'rk', 'pw', 'pwd', 'pass', 'passwd', 'password', 'passphrase', 'secret', 'token', 'apikey', 'bearer', 'glpat', 'ghp', 'gho', 'ghu', 'ghs', 'xoxa', 'xoxb', 'xoxp', 'xoxr', 'xoxs', 'akia', 'asia']);
+export function validWorkspaceId(raw) {
+  if (typeof raw !== 'string' || !WORKSPACE_RE.test(raw)) return false;
+  if (/[0-9a-f]{24,}/.test(raw)) return false;
+  return !raw.split('-').some((part) => CREDENTIAL_PARTS.has(part)) && !raw.startsWith('eyj');
+}
+
 export function workspaceFrom(req) {
   const raw = req.headers['x-workspace'];
   if (raw === undefined) return DEFAULT_WORKSPACE;
-  return typeof raw === 'string' && WORKSPACE_RE.test(raw) ? raw : null;
+  return validWorkspaceId(raw) ? raw : null;
 }
 
 export function createWorkspaces({ max = 500, ttlMs = 60 * 60 * 1000, now = Date.now } = {}) {

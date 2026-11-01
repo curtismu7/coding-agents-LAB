@@ -264,7 +264,7 @@ test('B1: a credential typed as your own action is absent from EVERY field of EV
 test('B1: the MCP server name is masked in the reason, the dialog and the native answer; the hook endpoint never echoes a credential either', async () => {
   await withServer(async (url) => {
     const r = await (await post(url, '/api/evaluate', { mode: 'live', agent: 'cursor', custom: { kind: 'mcp_call', text: `${secrets.sk} do_it x` } })).json();
-    assert.match(r.evaluation.reason, /\[REDACTED:api-secret-key\]/);
+    assert.match(r.evaluation.reason, /\[masked\]/);
     for (const part of [r.evaluation, r.dialog, r.native, r.hookRequest, r.hops, r.call]) assert.ok(!JSON.stringify(part).includes(secrets.sk));
     const events = { 'claude-code': [{ hook_event_name: 'UserPromptSubmit', prompt: `x ${secrets.aws}` }, { hook_event_name: 'PreToolUse', tool_name: `mcp__${secrets.sk}__t`, tool_input: { k: secrets.gh } }, { hook_event_name: 'PostToolUse', tool_name: 'mcp__srv__t', tool_input: {}, tool_response: `r ${secrets.slack}` }] };
     for (const payload of events['claude-code']) {

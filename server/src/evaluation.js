@@ -2,7 +2,8 @@
 // dialog each agent shows, and the raw hops. The Live path (live.js) runs the real hook script into the same gateway function,
 // so Mock and Live cannot drift: a test compares the table with the live engine for every scenario, agent and vertical.
 import { AGENT_IDS, agentById, nativeOutcome, nativeRequest, parsePayload, respond, unreachableOutcome, KIND_LABEL } from './agents.js';
-import { evaluateCall, redact } from './detect.js';
+import { evaluateCall } from './detect.js';
+import { maskDeep, maskText, redact } from './mask.js';
 import { SCENARIOS, materialize, mcpAllowFor } from './data.js';
 import { VERTICALS, fillDeep } from './cast.js';
 import { identityFrom, mockCertSubject } from './identity.js';
@@ -17,11 +18,19 @@ export function scenarioCall(cast, id) {
   return { scenario: s, call: JSON.parse(materialize(JSON.stringify(fillDeep(s.call, cast)))) };
 }
 
-// One-line text of a call for the audit and the dialog. Secrets are redacted.
+// One-line text of a call for the audit and the dialog. Secrets are masked, then the line is cut to 140 characters.
+// An MCP call is "server/tool args". A keyword in the server name and its value in the tool name ("password" / "hunter2xyz") are two words
+// to a reader, so the pair is masked once with a space between them; if that finds something the line is shown with the space (the
+// slash is lost), otherwise the usual slash form is masked and shown.
 export function summarize(call) {
-  const raw = call.kind === 'prompt' ? call.text : call.kind === 'shell' ? call.command : call.kind === 'file_read' ? call.path
-    : call.kind === 'mcp_call' ? `${call.server}/${call.tool} ${JSON.stringify(call.args ?? {})}` : `${call.server}/${call.tool} returned: ${call.result}`;
-  return redact(String(raw ?? '').replace(/\s+/g, ' '), 140);
+  if (call.kind === 'mcp_call' || call.kind === 'tool_result') {
+    // the arguments are masked BEFORE they are turned into JSON text: JSON writes a control character as the six characters \u0001, which hides it
+    const rest = call.kind === 'mcp_call' ? JSON.stringify(maskDeep(call.args ?? {})) : `returned: ${call.result}`;
+    const spaced = `${call.server} ${call.tool} ${rest}`;
+    const masked = maskText(spaced);
+    return redact(masked !== spaced ? masked : `${call.server}/${call.tool} ${rest}`, 140);
+  }
+  return redact(call.kind === 'prompt' ? call.text : call.kind === 'shell' ? call.command : call.path, 140); // masked first, then cut
 }
 
 // The gateway's work for a call already parsed from a hook payload.

@@ -24,7 +24,7 @@ test('validation: types, agent names, gateway hosts, duplicates, size', () => {
   assert.deepEqual(bad({ Gateways: ['https://a.example/', 'https://a.example/'] }), ['Gateways'], 'no duplicates');
   assert.deepEqual(bad({ Gateways: Array.from({ length: 6 }, (_, i) => `https://g${i}.example/`) }), ['Gateways']);
   assert.deepEqual(bad({ Gateways: 'x' }), ['Gateways']);
-  assert.deepEqual(bad({ Surprise: 1 }), ['Surprise']);
+  assert.deepEqual(bad({ Surprise: 1 }), ['(unknown field)']);
   assert.deepEqual(bad({ AIGuard: 'x' }), ['AIGuard']);
   assert.deepEqual(bad({ AIGuard: { big: 'x'.repeat(5000) } }), ['AIGuard']);
   for (const junk of [null, 'x', 5, []]) assert.equal(validateConfig(junk).ok, false);

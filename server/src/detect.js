@@ -11,6 +11,8 @@
 // secrets are recognised by shape only, so an unlabelled password in prose is not found; only the English hidden-instruction
 // phrases listed here are known.
 
+import { maskDeep, maskText, redact } from './mask.js';
+
 export const WINDOW = 4000; // characters kept from each end of a long field
 export const MAX_TEXT = WINDOW * 2; // a field up to this long is scanned whole
 export const EFFECT_RANK = { block: 3, ask: 2, alert: 1 };
@@ -20,7 +22,9 @@ export const DECISION_OF = { block: 'deny', ask: 'ask', alert: 'alert' };
 export const scanWindow = (s) => { const t = String(s ?? ''); return t.length <= MAX_TEXT ? t : `${t.slice(0, WINDOW)}\n${t.slice(-WINDOW)}`; };
 // Zero-width, bidi and BOM characters removed, so a credential split by one is still found.
 const INVISIBLE_CHARS = /[​-‏‪-‮⁠-⁤⁦-⁩﻿\u{e0000}-\u{e007f}]/gu;
-const plain = (s) => scanWindow(s).replace(INVISIBLE_CHARS, '');
+// C0/C1 controls (except tab, newline, carriage return) are deleted as well, so a keyword split by one is still found.
+const CONTROLS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
+const plain = (s) => scanWindow(s).replace(INVISIBLE_CHARS, '').replace(CONTROLS, '');
 
 // Secret shapes: prefix-anchored, bounded classes, no nested quantifiers. A letter or digit may not touch either end, but an underscore
 // or hyphen may (so a key embedded in an identifier such as mcp__<key>__tool is still found and masked).
@@ -41,32 +45,8 @@ export function findSecrets(text) {
   return out;
 }
 
-// Every secret-shaped run replaced by a marker. Not shortened: used on whole response objects (maskDeep) and by redact().
-export function maskSecrets(text) {
-  let t = String(text ?? '');
-  if (t.length > 20_000) t = `${t.slice(0, 10_000)}\n[... omitted ...]\n${t.slice(-10_000)}`;
-  t = t.replace(INVISIBLE_CHARS, '');
-  for (const [id, re] of SECRETS) t = t.replace(new RegExp(re.source, `${re.flags.replace('g', '')}g`), `[REDACTED:${id}]`);
-  return t;
-}
-
-// What an audit record may keep: secrets masked, control characters made visible, length capped.
-export function redact(text, max = 120) {
-  return maskSecrets(scanWindow(text)).replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, ' ').slice(0, max);
-}
-
-// A copy of any JSON-like value with every string masked. Iterative (a hostile value cannot overflow the stack).
-export function maskDeep(value) {
-  const root = { v: value }; const out = { v: undefined };
-  const work = [[root, out, 'v']];
-  while (work.length) {
-    const [src, dst, key] = work.pop(); const x = src[key];
-    if (typeof x === 'string') dst[key] = maskSecrets(x);
-    else if (x === null || typeof x !== 'object') dst[key] = x;
-    else { const copy = Array.isArray(x) ? [] : {}; dst[key] = copy; for (const k of Object.keys(x).reverse()) work.push([x, copy, k]); } // reversed: keys keep their order
-  }
-  return out.v;
-}
+// Masking of what a visitor typed (answers, audit, echoes) lives in mask.js. These names are kept for the callers that import them here.
+export { maskText as maskSecrets, maskDeep, redact };
 
 const HIDDEN_PHRASES = ['ignore all previous instructions', 'ignore previous instructions', 'ignore the above', 'disregard your instructions', 'disregard all prior', 'do not tell the user', "don't tell the user", 'without telling the user', 'new instructions:', 'you must now', 'reveal your system prompt'];
 const INVISIBLE_FLAG = /[​-‏‪-‮⁠-⁤⁦-⁩\u{e0000}-\u{e007f}]/u;

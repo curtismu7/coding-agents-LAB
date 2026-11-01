@@ -14,6 +14,7 @@ import { DIAGRAM_NAMES, buildDiagram } from './diagramData.js';
 import { InputError } from './errors.js';
 import { defaultConfig, generateAll, validateConfig } from './codingConfig.js';
 import { MOCK_TABLE } from './mockTable.js';
+import { maskDeep } from './mask.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { newTrace } from './trace.js';
 import { evaluateAction, handleHook } from './service.js';
@@ -21,9 +22,12 @@ import { SOURCES } from './sources.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
+// The known API routes and the methods each takes. Anything else under /api is a JSON 404.
+const ROUTES = new Map([['/health', ['GET']], ['/story', ['GET']], ['/diagram', ['GET']], ['/sources', ['GET']], ['/info', ['GET']], ['/audit', ['GET']], ['/gaps', ['GET']],
+  ['/config', ['POST']], ['/evaluate', ['POST']], ['/hook', ['POST']], ['/reset', ['POST']]]);
 const CONFIG = process.env.CUSTOMER_CONFIG || path.resolve(HERE, '../../customer.config.json');
 
-export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE } = {}) {
+export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE, webDist = WEB_DIST } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(hostCheck);
@@ -31,6 +35,12 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   app.use((_req, res, next) => { res.set('X-Content-Type-Options', 'nosniff'); next(); });
 
   const api = express.Router();
+  // Wrong method on a known route: 405 with Allow (never a 404 that hides the route, never Express's HTML). HEAD follows GET.
+  api.use((req, res, next) => {
+    const allowed = ROUTES.get(req.path.replace(/\/+$/, '').toLowerCase());
+    if (!allowed || allowed.includes(req.method) || (req.method === 'HEAD' && allowed.includes('GET'))) return next();
+    return res.set('Allow', allowed.includes('GET') ? 'GET, HEAD' : allowed.join(', ')).status(405).json({ error: 'method_not_allowed' });
+  });
   // A hook event can carry a long tool result; the hook trims every field to its head and tail (trim.js) and the gateway scans the first
   // and last 4000 characters of a field. Everything else is small.
   api.use((req, res, next) => express.json({ limit: req.path === '/hook' ? '256kb' : '16kb' })(req, res, next));
@@ -53,7 +63,9 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
     noStore(res);
     if (!objectBody(req)) return res.status(400).json({ error: 'bad_request' });
     const v = validateConfig(req.body.config ?? defaultConfig(castFor(req)));
-    return res.json({ ok: v.ok, errors: v.errors, warnings: v.warnings, config: v.config, generated: v.ok ? generateAll(v.config) : [] });
+    // The echoed config and the text generated from it are built from the MASKED config (a carried object, or a gateway path, may hold anything typed).
+    const shown = maskDeep(v.config);
+    return res.json(maskDeep({ ok: v.ok, errors: v.errors, warnings: v.warnings, config: shown, generated: v.ok ? generateAll(shown) : [] }));
   });
 
   // Evaluate a scripted action (both modes) or a visitor's own (Live only). The config comes with every request and is validated.
@@ -95,7 +107,26 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.post('/reset', (req, res) => { const id = ws(req, res); if (!id) return; noStore(res); workspaces.reset(id); return res.json({ reset: 'ok', workspace: id }); });
   api.use((_req, res) => res.status(404).json({ error: 'not_found' }));
   app.use('/api', api);
-  // Errors become short JSON. Express's default handler would send an HTML stack trace with absolute file paths.
+
+  // Outside /api only a GET or HEAD can succeed: a write to the page is 405 (Allow) on "/" and a JSON 404 anywhere else.
+  app.use((req, res, next) => {
+    if (req.method === 'GET' || req.method === 'HEAD') return next();
+    return req.path === '/' ? res.set('Allow', 'GET, HEAD').status(405).json({ error: 'method_not_allowed' }) : res.status(404).json({ error: 'not_found' });
+  });
+  if (fs.existsSync(path.join(webDist, 'index.html'))) {
+    app.use(express.static(webDist));
+    // The app shell answers only a GET of an extension-less, non-dotfile path. A missing file (/assets/x.js, /favicon.ico, /robots.txt,
+    // /foo.map, /.env) is a JSON 404, never 200 HTML: a broken asset link must fail loudly.
+    app.get(/^\/(?!api(?:\/|$)).*/, (req, res, next) => {
+      let p; try { p = decodeURIComponent(req.path); } catch { return next(); }
+      const parts = p.split('/');
+      if (parts.at(-1).includes('.') || parts.some((x) => x.startsWith('.'))) return next();
+      return res.sendFile(path.join(webDist, 'index.html'));
+    });
+  }
+  // Everything else is a short JSON 404; Express's own 404 would send HTML that echoes the path.
+  app.use((_req, res) => res.status(404).json({ error: 'not_found' }));
+  // Errors become short JSON with fixed text. Express's default handler would send an HTML stack trace with absolute file paths.
   // eslint-disable-next-line no-unused-vars
   app.use((err, _req, res, _next) => {
     const status = Number(err?.status || err?.statusCode);
@@ -103,11 +134,6 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
     if (status >= 400 && status < 500) return res.status(status).json({ error: 'bad_request' });
     return res.status(500).json({ error: 'internal_error' });
   });
-
-  if (fs.existsSync(path.join(WEB_DIST, 'index.html'))) {
-    app.use(express.static(WEB_DIST));
-    app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));
-  }
   return app;
 }
 

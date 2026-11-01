@@ -20,8 +20,9 @@ test('secrets: each shape is found, near misses are not', () => {
 test('redact replaces every secret-shaped run and keeps the rest', () => {
   const r = redact(`deploy with ${aws} and ${mockSecret()} now`);
   assert.ok(!r.includes(aws) && !r.includes(mockSecret()));
-  assert.match(r, /\[REDACTED:cloud-access-key-id\].*\[REDACTED:api-secret-key\]/);
-  assert.equal(redact('a\u0000b'), 'a b');
+  assert.match(r, /\[masked\].*\[masked\]/);
+  assert.equal(r, 'deploy with [masked] and [masked] now');
+  assert.equal(redact('a\u0000b'), 'ab', 'a control character is deleted, not turned into a space');
   assert.ok(redact('x'.repeat(500)).length <= 120);
 });
 
@@ -119,7 +120,7 @@ test('windowing: a field up to 8000 characters is scanned whole, a longer one by
 
 test('redaction: maskSecrets never shortens, maskDeep masks every string in a nested value, redact caps', () => {
   const k = mockSecret();
-  assert.equal(maskSecrets(`a ${k} b`), 'a [REDACTED:api-secret-key] b');
+  assert.equal(maskSecrets(`a ${k} b`), 'a [masked] b');
   const v = maskDeep({ a: [`x ${k}`, { b: k }], n: 1, z: null });
   assert.ok(!JSON.stringify(v).includes(k));
   assert.deepEqual([v.n, v.z], [1, null]);
@@ -145,5 +146,12 @@ test('ReDoS guard: adversarial inputs at the full scan window stay under 20 ms p
 test('an MCP server name that is a credential is masked inside the evaluation itself (reason and findings), not only at the edge', () => {
   const r = evaluateCall({ kind: 'mcp_call', server: mockSecret(), tool: 't', args: {} }, pol);
   assert.ok(!JSON.stringify(r).includes(mockSecret()));
-  assert.match(r.reason, /\[REDACTED:api-secret-key\]/);
+  assert.match(r.reason, /\[masked\]/);
+});
+
+test('a keyword or key split by a C0/C1 control character is still a finding: controls are deleted before matching', () => {
+  assert.deepEqual(findSecrets('pass\u0001word=abcdefgh1234'), ['credential-assignment']);
+  assert.deepEqual(findSecrets('p\u0000assword: abcdefgh1234'), ['credential-assignment']);
+  assert.deepEqual(findSecrets(`s\u0085k-${'a'.repeat(20)}`), ['api-secret-key']);
+  assert.deepEqual(findSecrets('pass word=abcdefgh1234'), [], 'an ordinary space is not a control character');
 });
