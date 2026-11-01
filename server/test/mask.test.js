@@ -91,6 +91,8 @@ test('B: the documented false-positive tradeoff: ordinary sentences stay readabl
   assert.equal(maskText('password abc12'), 'password abc12', 'a value shorter than 6 characters is NOT masked after a plain space');
   assert.equal(maskText('password abc123'), `password ${MARK}`, '6 characters and a digit is the smallest value that is masked');
   assert.equal(maskText('the token is valid'), 'the token is valid');
+  assert.equal(maskText('the key is long enough'), 'the key is long enough', 'a weak keyword with "is" takes a value only when it has a digit');
+  assert.equal(maskText('this pass was approved'), 'this pass was approved');
   assert.equal(maskText('A prompt carrying a credential is stopped outright'), 'A prompt carrying a credential is stopped outright');
   assert.equal(maskText('the password is required'), `the password is ${MARK}`, 'documented false positive: the word after "password is" is taken for the value');
   assert.equal(maskText('my secret is correcthorse'), 'my secret is correcthorse', 'the price: only "password is x" takes a value with no digit');
@@ -104,6 +106,7 @@ test('C: URL userinfo with and without a scheme', () => {
   assert.equal(maskText(`//bob:${V}@host.example`), `//${MARK}@host.example`);
   assert.equal(maskText(`https://bob:${V}@host.example/x`), `https://${MARK}@host.example/x`);
   assert.equal(maskText(`ftp://bob@host.example/x`), `ftp://${MARK}@host.example/x`);
+  assert.equal(maskText('//bob@host.example'), `//${MARK}@host.example`, 'a user name with no password after // is masked too');
   assert.equal(maskText(`login bob:${V}@10.0.0.5:8080/x`), `login ${MARK}@10.0.0.5:8080/x`);
   assert.equal(maskText('mail ops@corp.example or mailto:ops@corp.example'), 'mail ops@corp.example or mailto:ops@corp.example');
 });
