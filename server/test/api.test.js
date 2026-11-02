@@ -187,14 +187,14 @@ test('POST /api/hook directly: native answer, identity, bounded body; bad bodies
 
 test('workspaces are isolated and Reset clears only the caller\'s audit and gaps', async () => {
   await withServer(async (url) => {
-    for (const ws of ['w-a', 'w-b']) {
+    for (const ws of ['w-aa', 'w-bb']) {
       await post(url, '/api/evaluate', { mode: 'mock', agent: 'cursor', scenario: 'benign' }, { 'x-workspace': ws });
       await post(url, '/api/evaluate', { mode: 'mock', agent: 'cursor', scenario: 'benign', down: true }, { 'x-workspace': ws });
     }
-    await post(url, '/api/reset', {}, { 'x-workspace': 'w-a' });
+    await post(url, '/api/reset', {}, { 'x-workspace': 'w-aa' });
     const n = async (p, ws) => (await (await fetch(`${url}/api/${p}`, { headers: { 'x-workspace': ws } })).json())[p];
-    assert.deepEqual([(await n('audit', 'w-a')).length, (await n('gaps', 'w-a')).length], [0, 0]);
-    assert.deepEqual([(await n('audit', 'w-b')).length, (await n('gaps', 'w-b')).length], [1, 1]);
+    assert.deepEqual([(await n('audit', 'w-aa')).length, (await n('gaps', 'w-aa')).length], [0, 0]);
+    assert.deepEqual([(await n('audit', 'w-bb')).length, (await n('gaps', 'w-bb')).length], [1, 1]);
   });
 });
 

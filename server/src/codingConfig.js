@@ -59,7 +59,7 @@ export function validateConfig(input) {
       for (const g of input.Gateways) {
         let u = null;
         try { u = typeof g === 'string' && g.length <= 200 && !/['"`$\\\s]/.test(g) ? new URL(g) : null; } catch { u = null; }
-        if (!u || u.protocol !== 'https:' || u.username || u.password) e('Gateways', 'each endpoint must be an https URL of at most 200 characters, without credentials, quotes, backslashes or spaces');
+        if (!u || u.protocol !== 'https:' || u.username || u.password || u.search || u.hash) e('Gateways', 'each endpoint must be an https URL of at most 200 characters, without credentials, a query string, a fragment, quotes, backslashes or spaces');
         else if (!isReservedHost(u.hostname)) e('Gateways', 'each endpoint must be on an .example or .invalid host (the lab names no real host)');
         else if (seen.has(u.href)) e('Gateways', 'an endpoint is listed twice');
         else { seen.add(u.href); config.Gateways.push(u.href); }

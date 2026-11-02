@@ -9,13 +9,14 @@ export const forgetWorkspace = () => { memo = null; };
 // The page keeps and sends only the ids it generates itself ("w-" and 16 hex characters, see freshId). A saved id of any other shape is replaced at
 // once. Credential detection is the server's job (isCredentialId in server/src/workspaces.js): it answers 400 bad_workspace and workspaceFetch asks again
 // with a new id. A test checks that every id the page generates passes the server's rule.
-export const validWorkspaceId = (s) => typeof s === "string" && /^w-[0-9a-f]{16}$/.test(s);
+export const validWorkspaceId = (s) => typeof s === "string" && /^w-(?=\d*[a-f])[0-9a-f]{16}$/.test(s); // 16 hex characters with at least one letter (the server refuses a digits-only id)
 
-// "w-" and 16 hex characters: always holds a letter (the w), never 24 hex in a row.
+// "w-" and 16 hex characters, at least one of them a letter a-f (the server's workspace rule refuses a digits-only id), never 24 hex in a row.
 export function freshId() {
   const bytes = new Uint8Array(8);
   (window.crypto || { getRandomValues: (a) => a.map(() => Math.floor(Math.random() * 256)) }).getRandomValues(bytes);
-  return `w-${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+  const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `w-${/[a-f]/.test(hex) ? hex : `a${hex.slice(1)}`}`;
 }
 
 export function workspaceId({ renew = false } = {}) {

@@ -101,7 +101,7 @@ test('page shell: only a page address gets it. /assets and /assets/ are JSON 404
 
 test('workspace rule: a credential-looking id is a 400 bad_workspace before any state exists, is never echoed, and a good id creates exactly one slot', async () => {
   await withApp(async (url, workspaces) => {
-    const bad = [SK, ['pw', V].join('-'), '0123456789abcdef01234567', ['my', 'password', 'is', V].join('-'), ['token', 'abc123'].join('-'), 'A', 'a b'];
+    const bad = [SK, ['pw', V].join('-'), '0123456789abcdef01234567', ['my', 'password', 'is', V].join('-'), ['token', 'abc123'].join('-'), 'A', 'a b', `w-password${V}`, 'abc-1'];
     for (const id of bad) {
       for (const [method, p] of [['GET', '/api/audit'], ['GET', '/api/gaps'], ['POST', '/api/reset'], ['POST', '/api/hook'], ['POST', '/api/evaluate']]) {
         const r = await call(url, method, p, { headers: { 'x-workspace': id, 'content-type': 'application/json' }, body: method === 'POST' ? '{}' : undefined });

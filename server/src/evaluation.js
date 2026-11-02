@@ -37,7 +37,8 @@ function argShape(args) {
 // (the slash is lost), otherwise the usual slash form is masked and shown.
 export function summarize(call) {
   if (call.kind === 'mcp_call' || call.kind === 'tool_result') {
-    const rest = call.kind === 'mcp_call' ? argShape(call.args) : `returned: ${call.result}`;
+    // a tool result is masked ON ITS OWN first: put behind "server tool returned: " the shared masker no longer sees a table or a JSON pair that starts a line
+    const rest = call.kind === 'mcp_call' ? argShape(call.args) : `returned: ${maskText(call.result)}`;
     const spaced = `${call.server} ${call.tool} ${rest}`;
     const masked = maskText(spaced);
     return redact(masked !== spaced ? masked : `${call.server}/${call.tool} ${rest}`, 140);

@@ -2,17 +2,21 @@
 // evaluations (who ran what on which laptop) and the recorded gateway gaps, both bounded in count, size and age.
 // The browser sends its id in X-Workspace (default "default").
 import { isCredentialId, maskDeep } from './mask.js';
+import { safeWorkspaceId } from './shared/hygiene.js';
 
 export const WORKSPACE_RE = /^[a-z0-9-]{1,40}$/;
 export const DEFAULT_WORKSPACE = 'default';
 export const MAX_AUDIT = 50;
 export const MAX_GAPS = 50;
 
-// An id is lowercase letters, digits and hyphens, 1 to 40. It is echoed in answers, so it must not become a place to park a secret: the
-// shared masker's isCredentialId decides (a long hex or alphanumeric run, a token prefix such as sk- / pw- / ghp- / token- / password-, anything the
-// masker would mask). A refused id is a 400 bad_workspace and is never echoed. The page makes a new id and asks again (web/src/workspace.js).
+// An id is "default" or "w-" and lowercase letters, digits and hyphens (1 to 40 characters in all). It is echoed in answers, so it must not become a
+// place to park a secret: the shared masker's isCredentialId refuses what looks like a credential (a long hex or alphanumeric run, a token prefix such
+// as sk- / pw- / ghp- / token- / password-, anything the masker would mask) and the shared safeWorkspaceId refuses a credential word with a secret glued
+// to it or following it (w-passwordhunter2xyz, w-password-abc123). A refused id is a 400 bad_workspace and is never echoed. The page makes a new id and
+// asks again (web/src/workspace.js). A lab name that merely contains a credential word (w-password-reset) is fine.
 export function validWorkspaceId(raw) {
-  return typeof raw === 'string' && WORKSPACE_RE.test(raw) && !isCredentialId(raw);
+  if (typeof raw !== 'string' || !WORKSPACE_RE.test(raw) || isCredentialId(raw)) return false;
+  return raw === DEFAULT_WORKSPACE || safeWorkspaceId(raw) !== null;
 }
 
 export function workspaceFrom(req) {

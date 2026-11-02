@@ -20,7 +20,12 @@ test('the fingerprint hashes the MASKED subject: a typed secret leaves no hash b
 });
 
 test('the subject is masked whole before it is split into CN and OU; control characters are deleted', () => {
-  assert.equal(identityFrom('CN=pass\u0001word=hunter2xyz').identity, '[masked]', 'CHANGED: no control character survives in a masked value, and the keyword goes with it');
+  assert.equal(identityFrom('CN=password=hunter2xyz').identity, '[masked]', 'CHANGED: the keyword goes with the value');
+  assert.equal(identityFrom('CN=pass\u0001word=hunter2xyz').identity, 'unknown', 'CHANGED: a control character or a line break makes it no certificate subject: it is not read at all');
+  assert.equal(identityFrom('CN=a,OU=device:password: |\n  line1\n  hunter2xyz').identity, 'unknown');
+  assert.equal(identityFrom('CN=a,OU=device:LT-1,X=1').identity, 'unknown', 'an unknown key');
+  assert.equal(identityFrom('CN=a,OU=device:LT-1,O=b,L=c,ST=d,C=e,OU=f,O=g,CN=h').identity, 'unknown', 'more than 8 pieces');
+  assert.equal(identityFrom('CN=password hunter2xyz,OU=device:password hunter2xyz').device, '[masked]', 'each value is masked on its own, so the second keyword is not swallowed by the first');
   assert.equal(identityFrom('CN=bob@host.example,OU=device:LT-1').identity, 'bob@host.example');
   assert.equal(identityFrom('nothing useful').identity, 'unknown');
 });
