@@ -3,14 +3,16 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { validWorkspaceId as serverValid } from "../../server/src/workspaces.js";
 import { forgetWorkspace, freshId, validWorkspaceId, workspaceFetch, workspaceId } from "./workspace";
 
-const GOOD = ["default", "w-0123456789abcdef", "abc-1", "w-b1-hook", "a", "z".repeat(40), "a".repeat(23), "0".repeat(23), "w-sweep-hook", "my-tokens", "tokens-1", "passwords"];
-const BAD = ["", "A", "a b", "a/b", "z".repeat(41), "sk-abcdefghijklmnop1234", "pw-hunter2xyz", "pw-x", "token-abc", "a-password-b", "ghp-abcdefghijkl", "glpat-xxxxxxxx", "xoxb-1234-abcd", "akia-abc", "eyjhbgcioijiuzi1nij9", "a".repeat(24), "0".repeat(24), "w-0123456789abcdef01234567", "hunter2xyz\n", "sk", "x-sk-y", "pwd-1", "secret-1", "bearer-abc"];
+// CHANGED: the page no longer has its own list of credential words. It keeps only the ids it generates (w- and 16 hex characters); the server's rule
+// (isCredentialId) is the only credential check and a refusal makes the page generate a new id. Every id the page accepts must pass the server's rule.
+const GOOD = ["w-0123456789abcdef", "w-ffffffffffffffff", "w-0000000000000000"];
+const BAD = ["", "default", "A", "a b", "a/b", "abc-1", "w-b1-hook", "w-sweep-hook", "z".repeat(41), "sk-abcdefghijklmnop1234", "pw-hunter2xyz", "token-abc", `${GOOD[0]}`.slice(0, -1), `${GOOD[0]}0`, `${GOOD[0].slice(0, -1)}g`, GOOD[0].toUpperCase(), `${GOOD[0]}01234567`, "hunter2xyz\n"];
 
 describe("workspace id", () => {
-  it("the page's rule and the server's rule agree on a table of ids (23 hex in a row is fine, 24 is not; 40 characters is fine, 41 is not)", () => {
+  it("the page keeps only the ids it generates, and the server accepts every one of them", () => {
     for (const id of GOOD) { expect(validWorkspaceId(id), id).toBe(true); expect(serverValid(id), id).toBe(true); }
-    for (const id of BAD) { expect(validWorkspaceId(id), JSON.stringify(id)).toBe(false); expect(serverValid(id), JSON.stringify(id)).toBe(false); }
-    expect(GOOD.length).toBe(12); expect(BAD.length).toBe(24);
+    for (const id of BAD) expect(validWorkspaceId(id), JSON.stringify(id)).toBe(false);
+    expect(GOOD.length).toBe(3); expect(BAD.length).toBe(18);
     for (const nonString of [undefined, null, 5, ["a"], {}]) { expect(validWorkspaceId(nonString)).toBe(false); expect(serverValid(nonString)).toBe(false); }
   });
 

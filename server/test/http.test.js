@@ -102,7 +102,7 @@ test('E: an unknown route under /api is a JSON 404 for every method, and errors 
     const bad = await call(url, 'POST', '/api/evaluate', { body: '{"a": zzmark', headers: { 'content-type': 'application/json' } });
     assert.equal(bad.status, 400); assert.deepEqual(JSON.parse(bad.text), { error: 'bad_request' });
     const big = await call(url, 'POST', '/api/evaluate', { body: JSON.stringify({ a: 'x'.repeat(17_000) }), headers: { 'content-type': 'application/json' } });
-    assert.equal(big.status, 413); assert.deepEqual(JSON.parse(big.text), { error: 'payload_too_large' });
+    assert.equal(big.status, 413); assert.deepEqual(JSON.parse(big.text), { error: 'too_large' }); // CHANGED: the shared recipe's fixed code (was payload_too_large)
     const esc = await call(url, 'GET', '/%E0%A4%A-zzmark');
     assert.ok(esc.status >= 400 && esc.status < 500, `a bad escape is a 4xx (${esc.status})`); assert.match(esc.type, /application\/json/); assert.ok(!esc.text.includes('zzmark'));
   });

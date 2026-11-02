@@ -28,8 +28,11 @@ test('the subject is masked whole before it is split into CN and OU; control cha
 test('summarize: an MCP pair is masked as two words (server "password", tool "hunter2xyz"), otherwise the slash form stays', () => {
   assert.equal(summarize({ kind: 'mcp_call', server: 'password', tool: 'hunter2xyz', args: {} }), '[masked] {}');
   assert.equal(summarize({ kind: 'tool_result', server: 'token', tool: 'hunter2xyz', result: 'ok' }), '[masked] returned: ok');
-  assert.equal(summarize({ kind: 'mcp_call', server: 'srv', tool: 'tool', args: { a: 1 } }), 'srv/tool {"a":1}');
-  assert.equal(summarize({ kind: 'mcp_call', server: 'srv', tool: 'tool', args: { 'p\u0001assword': 'hunter2xyz' } }), 'srv/tool {"p\\u0001assword":"[masked]"}', 'CHANGED: the key keeps its control character (the shared masker does not rewrite text) and only the value is masked, so the slash stays');
+  // CHANGED: the audit, the dialog and the summary show argument NAMES and TYPES, never values (a bare secret under an unknown or renamed key cannot be told from text).
+  assert.equal(summarize({ kind: 'mcp_call', server: 'srv', tool: 'tool', args: { a: 1 } }), 'srv/tool {a: number}');
+  assert.equal(summarize({ kind: 'mcp_call', server: 'srv', tool: 'tool', args: { renamed_field: 'hunter2xyz', n: 5, b: true, z: null, l: [1, 2], o: { x: 1 } } }), 'srv/tool {renamed_field: text(10), n: number, b: boolean, z: null, l: list(2), o: object}');
+  assert.equal(summarize({ kind: 'mcp_call', server: 'srv', tool: 'tool', args: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`k${i}`, i])) }), 'srv/tool {k0: number, k1: number, k2: number, k3: number, k4: number, k5: number, k6: number, k7: number, ... 4 more}');
+  assert.equal(summarize({ kind: 'mcp_call', server: 'srv', tool: 'tool', args: { 'p\u0001assword': 'hunter2xyz' } }), 'srv/tool {p\u0001assword: text(10)}', 'CHANGED: the key keeps its control character (the shared masker does not rewrite text) and the value is not shown at all');
   assert.equal(summarize({ kind: 'prompt', text: `${'x '.repeat(100)}password=hunter2xyz` }).length, 140, 'cut to 140 after masking');
   assert.equal(summarize({ kind: 'prompt', text: 'password=hunter2xyz' }), '[masked]');
 });

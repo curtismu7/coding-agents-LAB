@@ -202,7 +202,7 @@ test('oversized and malformed bodies get a short JSON error, never a stack trace
   await withServer(async (url) => {
     const raw = (body) => fetch(`${url}/api/evaluate`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body });
     const big = await raw(JSON.stringify({ pad: 'x'.repeat(17_000) }));
-    assert.deepEqual([big.status, await big.json()], [413, { error: 'payload_too_large' }]);
+    assert.deepEqual([big.status, await big.json()], [413, { error: 'too_large' }]); // CHANGED: the shared recipe's fixed code (was payload_too_large)
     const bad = await raw('{not json');
     assert.equal(bad.status, 400);
     assert.ok(!/\/Users\/|node_modules|at \w+ \(/.test(JSON.stringify(await bad.json())));

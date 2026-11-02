@@ -34,9 +34,11 @@ test('the store expires old workspaces and caps their count', () => {
 import { validWorkspaceId } from '../src/workspaces.js';
 import { withServer } from './helpers.js';
 
-test('F: validWorkspaceId: 23 hex in a row is fine, 24 is not; 40 characters is fine, 41 is not; credential parts are refused', () => {
-  for (const ok of ['default', 'w-0123456789abcdef', 'abc-1', 'w-b1-hook', 'a'.repeat(23), '0'.repeat(23), 'z'.repeat(40), 'my-tokens', 'passwords']) assert.equal(validWorkspaceId(ok), true, ok);
-  for (const bad of ['', 'a'.repeat(24), '0'.repeat(24), 'w-0123456789abcdef01234567', 'z'.repeat(41), 'sk-abcdefghijklmnop1234', 'pw-hunter2xyz', 'token-abc', 'a-password-b', 'ghp-abc', 'eyjhbg', 'A', 'a b']) assert.equal(validWorkspaceId(bad), false, bad);
+// CHANGED: the rule is the shared masker's isCredentialId. An id that merely CONTAINS a credential word (a-password-b, pwd-1, sk, x-sk-y) is a lab name, not a
+// credential, and is accepted now; what looks like a credential (a token prefix with a body, a long hex run, "password is X") is still refused.
+test('F: validWorkspaceId: 23 hex in a row is fine, 24 is not; 40 characters is fine, 41 is not; credential-looking ids are refused', () => {
+  for (const ok of ['default', 'w-0123456789abcdef', 'abc-1', 'w-b1-hook', 'a'.repeat(23), '0'.repeat(23), 'z'.repeat(40), 'my-tokens', 'passwords', 'a-password-b', 'pwd-1', 'sk', 'x-sk-y', 'w-password-reset']) assert.equal(validWorkspaceId(ok), true, ok);
+  for (const bad of ['', 'a'.repeat(24), '0'.repeat(24), 'w-0123456789abcdef01234567', 'z'.repeat(41), 'sk-abcdefghijklmnop1234', 'pw-hunter2xyz', 'token-abc', 'ghp-abc', 'A', 'a b', 'my-password-is-hunter2xyz', 'x-token-abc123', 'password-hunter2xyz']) assert.equal(validWorkspaceId(bad), false, bad);
   assert.equal(validWorkspaceId(undefined), false); assert.equal(validWorkspaceId(['a']), false);
 });
 

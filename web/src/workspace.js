@@ -6,14 +6,10 @@ let memo = null;
 // Tests only: forget the id held in memory so the next call picks a new one.
 export const forgetWorkspace = () => { memo = null; };
 
-// The server's rule (server/src/workspaces.js validWorkspaceId): lowercase letters, digits and hyphens, 1 to 40; not 24 or more hex
-// characters in a row; no hyphen-separated part that names a credential or starts a token (sk-, pw-, ghp-, token-, password-, ...).
-// A test compares this copy with the server's own check on a table of ids.
-const CREDENTIAL_PARTS = new Set(["sk", "pk", "rk", "pw", "pwd", "pass", "passwd", "password", "passphrase", "secret", "token", "apikey", "bearer", "glpat", "ghp", "gho", "ghu", "ghs", "xoxa", "xoxb", "xoxp", "xoxr", "xoxs", "akia", "asia"]);
-export function validWorkspaceId(s) {
-  if (typeof s !== "string" || !/^[a-z0-9-]{1,40}$/.test(s) || /[0-9a-f]{24,}/.test(s) || s.startsWith("eyj")) return false;
-  return !s.split("-").some((part) => CREDENTIAL_PARTS.has(part));
-}
+// The page keeps and sends only the ids it generates itself ("w-" and 16 hex characters, see freshId). A saved id of any other shape is replaced at
+// once. Credential detection is the server's job (isCredentialId in server/src/workspaces.js): it answers 400 bad_workspace and workspaceFetch asks again
+// with a new id. A test checks that every id the page generates passes the server's rule.
+export const validWorkspaceId = (s) => typeof s === "string" && /^w-[0-9a-f]{16}$/.test(s);
 
 // "w-" and 16 hex characters: always holds a letter (the w), never 24 hex in a row.
 export function freshId() {
