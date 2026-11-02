@@ -214,7 +214,7 @@ test('adapter: a value the lab generates is left alone ONLY with its exact shape
   const tp = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
   const own = { traceparent: tp, traceId: '0af7651916cd43dd8448eb211c80319c', reasonCode: 'DENY-SECRET-IN-PROMPT', session_id: 'sess-mock-0001', sessionId: 'sess-mock-0002' };
   assert.deepEqual(maskDeep(own), own, 'the lab\'s own values stay');
-  assert.deepEqual(maskDeep({ reasonCode: 'ALLOW' }), { reasonCode: 'ALLOW' });
+  for (const code of ['ALLOW', 'IGNORED-EVENT', 'ASK-UNLISTED-MCP-SERVER', 'ALERT-SECRET-IN-ARGUMENTS', 'ALERT-SECRET-IN-RESULT', 'ALERT-SHELL-CHAIN-EXFIL', 'DENY-GATEWAY-UNREACHABLE']) assert.deepEqual(maskDeep({ reasonCode: code }), { reasonCode: code }, code);
   assert.deepEqual(maskDeep({ reasonCode: 'GAP-GATEWAY-UNREACHABLE' }), { reasonCode: 'GAP-GATEWAY-UNREACHABLE' });
   for (const typed of [{ traceId: `password=${V}` }, { traceparent: `sk-${K}` }, { reasonCode: `DENY-${V}-X1` }, { reasonCode: `sk-${K}` }, { traceId: `${'a1'.repeat(25)}` }, { session_id: `token ${V}` }]) {
     assert.ok(!JSON.stringify(maskDeep(typed)).includes(V) && !JSON.stringify(maskDeep(typed)).includes(K) && !JSON.stringify(maskDeep(typed)).includes('a1a1a1a1'), JSON.stringify(typed));

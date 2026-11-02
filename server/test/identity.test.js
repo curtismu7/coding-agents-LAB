@@ -42,6 +42,14 @@ test('summarize: an MCP pair is masked as two words (server "password", tool "hu
   assert.equal(summarize({ kind: 'prompt', text: 'password=hunter2xyz' }), '[masked]');
 });
 
+test('summarize: a tool result is masked on its own (a table or a JSON pair that starts a line), and the line is cut to exactly 140 characters', () => {
+  const table = 'user    password   role\nbob     hunter2xyz          admin';
+  const pair = '{"Parameters":[{"ParameterKey":"Password","ParameterValue":"hunter2xyz"}]}';
+  for (const result of [table, pair]) assert.ok(!summarize({ kind: 'tool_result', server: 'builtin', tool: 'tool', result }).includes('hunter2xyz'), result);
+  assert.equal(summarize({ kind: 'tool_result', server: 'srv', tool: 'tool', result: 'x '.repeat(200) }).length, 140);
+  assert.equal(summarize({ kind: 'mcp_call', server: 's'.repeat(40), tool: 't'.repeat(40), args: Object.fromEntries(Array.from({ length: 8 }, (_, i) => [`argument_number_${i}`, 1])) }).length, 140);
+});
+
 test('a hook certSubject of 300 characters is read, 301 is refused whole with a 400 (never cut), and the refusal quotes nothing', async () => {
   await withServer(async (url) => {
     const payload = { hook_event_name: 'UserPromptSubmit', prompt: 'hi' };

@@ -134,6 +134,14 @@ test('catch-all error handler: a failure inside a route is a fixed 500, a bad bo
   }, { workspaces: boom });
 });
 
+test('the response mask is the last line: a store that hands back unmasked state (a bug elsewhere) is still masked on the way out, values and keys', async () => {
+  const leaky = { audit: () => ({ workspace: 'w-0123456789abcdef', audit: [{ summary: `password=${V}`, [`token ${V}`]: 1, nested: { note: `Authorization: Bearer ${V}` } }] }), gaps: () => ({ gaps: [] }), addAudit() {}, addGap() {}, reset() {}, size: () => 0 };
+  await withApp(async (url) => {
+    const r = await call(url, 'GET', '/api/audit', { headers: { 'x-workspace': 'w-0123456789abcdef' } });
+    assert.equal(r.status, 200); assert.ok(!r.text.includes(V), r.text); assert.match(r.text, /\[masked\]/);
+  }, { workspaces: leaky });
+});
+
 test('state is masked at WRITE time: an audit entry and a gap hold the masked text whatever the caller passes in', () => {
   const w = createWorkspaces();
   w.addAudit('w-a', { agent: 'claude-code', summary: `password=${V}`, [`token ${V}`]: 1, nested: { note: `Authorization: Bearer ${V}` } });

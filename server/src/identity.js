@@ -23,7 +23,7 @@ function maskedPieces(subject) {
   for (const piece of raw) {
     const eq = piece.indexOf('=');
     if (eq < 0 || !DN_KEYS.has(piece.slice(0, eq).trim())) return null;
-    out.push({ key: piece.slice(0, eq).trim(), text: `${piece.slice(0, eq)}=${maskText(piece.slice(eq + 1))}`, value: maskText(piece.slice(eq + 1)).trim() });
+    out.push({ key: piece.slice(0, eq).trim(), text: `${piece.slice(0, eq)}=${maskText(piece.slice(eq + 1))}`, value: piece.slice(eq + 1).trim() }); // value is shown through redact(), which masks first
   }
   return out;
 }

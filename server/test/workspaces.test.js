@@ -32,6 +32,8 @@ test('the store expires old workspaces and caps their count', () => {
 
 // ---- F: credential-looking ids are refused (never echoed); boundaries are literal ----
 import { validWorkspaceId } from '../src/workspaces.js';
+import { isCredentialId } from '../src/mask.js';
+import { safeWorkspaceId } from '../src/shared/hygiene.js';
 import { withServer } from './helpers.js';
 
 // CHANGED: an id is "default" or "w-" and a lab name, and the shared rules decide (isCredentialId, safeWorkspaceId). An id that merely CONTAINS a credential word
@@ -43,6 +45,14 @@ test('F: validWorkspaceId: default and w- names; 23 hex in a row is fine, 24 is 
   for (const bad of ['', 'abc-1', 'a', 'a'.repeat(24), '0'.repeat(24), `w-${'a'.repeat(24)}`, 'w-0123456789abcdef01234567', w(41), 'sk-abcdefghijklmnop1234', 'pw-hunter2xyz', 'token-abc', 'ghp-abc', 'A', 'a b', 'my-password-is-hunter2xyz',
     'x-token-abc123', 'password-hunter2xyz', 'w-passwordhunter2xyz', 'w-hunter2xyzpassword', 'w-password-abc123', 'w-my-password-is-hunter2xyz', 'w-token-abc123']) assert.equal(validWorkspaceId(bad), false, bad);
   assert.equal(validWorkspaceId(undefined), false); assert.equal(validWorkspaceId(['a']), false);
+});
+
+// The rule asks isCredentialId itself, on top of the shared safeWorkspaceId, which excuses a lab name that merely contains a credential word: this one the masker flags.
+test('F: an id isCredentialId flags is refused even when safeWorkspaceId would excuse it as a lab name', () => {
+  assert.equal(isCredentialId('w-secret-handling-4'), true);
+  assert.equal(safeWorkspaceId('w-secret-handling-4'), 'w-secret-handling-4');
+  assert.equal(validWorkspaceId('w-secret-handling-4'), false);
+  assert.equal(validWorkspaceId('w-token-bucket-demo'), true);
 });
 
 test('F: the server answers 400 bad_workspace for a credential-looking id on every workspace endpoint and never echoes it', async () => {
