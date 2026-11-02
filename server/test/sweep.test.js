@@ -70,14 +70,15 @@ test('sweep: every free-text field of /api/evaluate, in Live, for every kind (ca
 
 test('sweep: the call text, summary, hook request, dialog and every hop pane show the MASKED text for the exact repros', async () => {
   const { json: r } = await evaluate('repro', { mode: 'live', agent: 'claude-code', custom: { kind: 'prompt', text: 'my password is hunter2xyz' } });
-  assert.equal(r.call.text, 'my password is [masked]');
-  assert.equal(r.call.summary, 'my password is [masked]');
-  assert.equal(r.hookRequest.prompt, 'my password is [masked]');
-  assert.ok(r.dialog.action.endsWith('my password is [masked]'));
-  assert.ok(r.hops[0].request.includes('my password is [masked]'));
+  // CHANGED (shared masker): the keyword is masked together with its value.
+  assert.equal(r.call.text, 'my [masked]');
+  assert.equal(r.call.summary, 'my [masked]');
+  assert.equal(r.hookRequest.prompt, 'my [masked]');
+  assert.ok(r.dialog.action.endsWith('my [masked]'));
+  assert.ok(r.hops[0].request.includes('my [masked]'));
   const { json: m } = await evaluate('repro mcp', { mode: 'live', agent: 'claude-code', custom: { kind: 'mcp_call', text: 'password hunter2xyz' } });
-  assert.equal(m.call.server, 'password');
-  assert.equal(m.call.tool, '[masked]');
+  assert.equal(m.call.server, '[masked]', 'CHANGED: the whole "password hunter2xyz" pair is masked, so the server name is the mark');
+  assert.equal(m.call.tool, 'run');
 });
 
 test('sweep: config values and key names in /api/evaluate and /api/config (errors, field names, echoed config, generated text)', async () => {

@@ -5,13 +5,13 @@
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -21,20 +21,20 @@
     },
     "native": {
      "decision": "block",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "cursor": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -44,20 +44,20 @@
     },
     "native": {
      "continue": false,
-     "user_message": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "user_message": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "codex": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -67,20 +67,20 @@
     },
     "native": {
      "decision": "block",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "gemini-cli": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -90,20 +90,20 @@
     },
     "native": {
      "decision": "deny",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "copilot": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -941,13 +941,13 @@
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -957,20 +957,20 @@
     },
     "native": {
      "decision": "block",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "cursor": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -980,20 +980,20 @@
     },
     "native": {
      "continue": false,
-     "user_message": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "user_message": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "codex": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1003,20 +1003,20 @@
     },
     "native": {
      "decision": "block",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "gemini-cli": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1026,20 +1026,20 @@
     },
     "native": {
      "decision": "deny",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "copilot": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1877,13 +1877,13 @@
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1893,20 +1893,20 @@
     },
     "native": {
      "decision": "block",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "cursor": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1916,20 +1916,20 @@
     },
     "native": {
      "continue": false,
-     "user_message": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "user_message": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "codex": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1939,20 +1939,20 @@
     },
     "native": {
      "decision": "block",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "gemini-cli": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
@@ -1962,20 +1962,20 @@
     },
     "native": {
      "decision": "deny",
-     "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+     "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
     }
    },
    "copilot": {
     "covered": true,
     "decision": "deny",
     "reasonCode": "DENY-SECRET-IN-PROMPT",
-    "reason": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider.",
+    "reason": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider.",
     "findings": [
      {
       "id": "secret-in-prompt",
       "effect": "block",
       "label": "A credential in a prompt",
-      "detail": "The prompt carries a credential (api-secret-key). It is stopped before it reaches the model provider."
+      "detail": "The prompt carries a credential (phrase). It is stopped before it reaches the model provider."
      }
     ],
     "decidedBy": "deterministic rules",
