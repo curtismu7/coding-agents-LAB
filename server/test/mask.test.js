@@ -208,3 +208,29 @@ test('masking leaves the lab\'s own text alone: agents, mock table, sources, sto
   }
   assert.equal(Object.keys(VERTICALS).length, 3);
 });
+
+// ---------- the adapter itself: what the lab leaves alone (by shape, never by name alone), and the limits the README states ----------
+test('adapter: a value the lab generates is left alone ONLY with its exact shape; the same name with a typed value is masked', () => {
+  const tp = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
+  const own = { traceparent: tp, traceId: '0af7651916cd43dd8448eb211c80319c', reasonCode: 'DENY-SECRET-IN-PROMPT', session_id: 'sess-mock-0001', sessionId: 'sess-mock-0002' };
+  assert.deepEqual(maskDeep(own), own, 'the lab\'s own values stay');
+  assert.deepEqual(maskDeep({ reasonCode: 'ALLOW' }), { reasonCode: 'ALLOW' });
+  assert.deepEqual(maskDeep({ reasonCode: 'GAP-GATEWAY-UNREACHABLE' }), { reasonCode: 'GAP-GATEWAY-UNREACHABLE' });
+  for (const typed of [{ traceId: `password=${V}` }, { traceparent: `sk-${K}` }, { reasonCode: `DENY-${V}-X1` }, { reasonCode: `sk-${K}` }, { traceId: `${'a1'.repeat(25)}` }, { session_id: `token ${V}` }]) {
+    assert.ok(!JSON.stringify(maskDeep(typed)).includes(V) && !JSON.stringify(maskDeep(typed)).includes(K) && !JSON.stringify(maskDeep(typed)).includes('a1a1a1a1'), JSON.stringify(typed));
+  }
+  assert.equal(maskDeep({ password: 'DENY-SECRET-IN-PROMPT' }).password, MARK, 'a credential-named key still masks, whatever the value looks like');
+});
+
+test('adapter: the limits the README states are the measured behaviour (an assertion that fails here means the README must change)', () => {
+  assert.equal(maskText(`password hunter2xyz,password hunter3xyz`), `${MARK} hunter3xyz`, 'shared-masker 1.4.0 gap: the second keyword is swallowed by the first value');
+  assert.equal(maskText(`password hunter2xyz/password hunter3xyz`), `password hunter2xyz/password hunter3xyz`, 'shared-masker 1.4.0 gap: a value that runs into a slash is not masked');
+  assert.equal(maskText(`password=hunt er2xyz`), `${MARK} er2xyz`, 'a value ends at a typed space');
+  assert.equal(maskText('password abc12'), 'password abc12'); assert.equal(maskText('password correcthorse'), 'password correcthorse');
+  assert.equal(maskText('the password is required'), 'the password is required'); assert.equal(maskText('password reset'), 'password reset');
+  assert.equal(maskText(`my password is ${V}`), `my ${MARK}`);
+  assert.equal(maskText(`login bob:${V}@10.0.0.5:8080/x`), MARK);
+  assert.deepEqual(Object.keys(maskDeep({ 'secret-prompt': { a: 'ordinary text' } })), ['secret-prompt']);
+  assert.deepEqual(maskDeep({ 'secret-prompt': { a: 'ordinary text' } }), { 'secret-prompt': { a: MARK } }, 'a credential-named KEY forces its whole subtree');
+  assert.equal(maskText('é'.repeat(10)), 'é'.repeat(10));
+});

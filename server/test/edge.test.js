@@ -163,3 +163,36 @@ test('lab data (story, diagram, sources, info) is served as it is, mock credenti
     for (const p of ['/api/sources', '/api/info']) assert.equal((await call(url, 'GET', p)).status, 200, p);
   });
 });
+
+test('error handler: an error that carries any other status (403, 404, 418) is still a fixed 500, never the status or the message it carries', async () => {
+  for (const status of [403, 404, 418, 502]) {
+    const weird = { audit() { throw Object.assign(new Error(`nope ${V}`), { status }); }, gaps() { return { gaps: [] }; }, addAudit() {}, addGap() {}, reset() {}, size: () => 0 };
+    await withApp(async (url) => {
+      const r = await call(url, 'GET', '/api/audit', { headers: { 'x-workspace': 'w-0123456789abcdef' } });
+      assert.equal(r.status, 500, `status ${status}`); assert.deepEqual(JSON.parse(r.text), { error: 'internal' });
+    }, { workspaces: weird });
+  }
+});
+
+test('config: a Gateways endpoint with a query string, a fragment or credentials is refused with fixed text and nothing is echoed', async () => {
+  await withApp(async (url) => {
+    for (const g of [`https://tunnel.example/?q=${V}`, `https://tunnel.example/#${V}`, `https://${V}:x@tunnel.example/`]) {
+      const r = await call(url, 'POST', '/api/config', { headers: { 'content-type': 'application/json' }, body: JSON.stringify({ config: { Enabled: true, Gateways: [g] } }) });
+      const j = JSON.parse(r.text);
+      assert.equal(j.ok, false, g); assert.equal(j.config, null, g); assert.ok(!r.text.includes(V), g);
+    }
+    const good = JSON.parse((await call(url, 'POST', '/api/config', { headers: { 'content-type': 'application/json' }, body: JSON.stringify({ config: { Enabled: true, Gateways: ['https://tunnel.example/path'] } }) })).text);
+    assert.equal(good.ok, true);
+  });
+});
+
+test('static files: a dotfile that really exists in the built page is a JSON 404, a directory has no index', async () => {
+  const dir = distDir();
+  fs.writeFileSync(path.join(dir, '.hidden.txt'), 'private');
+  fs.mkdirSync(path.join(dir, 'sub')); fs.writeFileSync(path.join(dir, 'sub', 'index.html'), 'sub index');
+  await withApp(async (url) => {
+    for (const p of ['/.hidden.txt', '/sub/index.html.nope']) { const r = await call(url, 'GET', p); assert.equal(r.status, 404, p); assert.ok(!r.text.includes('private')); }
+    const sub = await call(url, 'GET', '/sub/', { headers: { accept: 'text/html' } });
+    assert.ok(!sub.text.includes('sub index'), 'a directory is not served by its index file');
+  }, { webDist: dir });
+});
