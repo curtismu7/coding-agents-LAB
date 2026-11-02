@@ -11,6 +11,9 @@
 // secrets are recognised by shape only, so an unlabelled password in prose is not found; only the English hidden-instruction
 // phrases listed here are known.
 
+import { createStats, maskText as sharedMaskText } from './shared/mask.js';
+import { maskDeep, maskText, redact } from './mask.js';
+
 export const WINDOW = 4000; // characters kept from each end of a long field
 export const MAX_TEXT = WINDOW * 2; // a field up to this long is scanned whole
 export const EFFECT_RANK = { block: 3, ask: 2, alert: 1 };
@@ -18,55 +21,22 @@ export const DECISION_OF = { block: 'deny', ask: 'ask', alert: 'alert' };
 
 // Head and tail of a long text, so a hook that trims a huge field and a direct post are scanned alike.
 export const scanWindow = (s) => { const t = String(s ?? ''); return t.length <= MAX_TEXT ? t : `${t.slice(0, WINDOW)}\n${t.slice(-WINDOW)}`; };
-// Zero-width, bidi and BOM characters removed, so a credential split by one is still found.
-const INVISIBLE_CHARS = /[​-‏‪-‮⁠-⁤⁦-⁩﻿\u{e0000}-\u{e007f}]/gu;
-const plain = (s) => scanWindow(s).replace(INVISIBLE_CHARS, '');
+// Zero-width, bidi and BOM characters removed, so a phrase split by one is still found (hidden-instruction detection only; credentials are
+// found by the shared masker, which has its own normalisation).
+const INVISIBLE_CHARS = /[\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff\u{e0000}-\u{e007f}]/gu;
 
-// Secret shapes: prefix-anchored, bounded classes, no nested quantifiers. A letter or digit may not touch either end, but an underscore
-// or hyphen may (so a key embedded in an identifier such as mcp__<key>__tool is still found and masked).
-const SECRETS = [
-  ['cloud-access-key-id', /(?<![A-Za-z0-9])AKIA[0-9A-Z]{16}(?![A-Za-z0-9])/],
-  ['git-host-token', /(?<![A-Za-z0-9])gh[pousr]_[A-Za-z0-9]{20,80}(?![A-Za-z0-9])/],
-  ['chat-token', /(?<![A-Za-z0-9])xox[abprs]-[A-Za-z0-9-]{10,100}/],
-  ['api-secret-key', /(?<![A-Za-z0-9])sk-[A-Za-z0-9_-]{16,100}/],
-  ['private-key-block', /-----BEGIN [A-Z ]{0,24}PRIVATE KEY-----/],
-  ['bearer-token', /(?<![A-Za-z0-9])bearer [A-Za-z0-9._~+/=-]{20,200}/i],
-  ['jwt', /(?<![A-Za-z0-9])eyJ[A-Za-z0-9_-]{10,200}\.[A-Za-z0-9_-]{10,200}\.[A-Za-z0-9_-]{5,200}/],
-  ['credential-assignment', /(?<![A-Za-z0-9])(?:password|passwd|secret|api[_-]?key|access[_-]?token)\s{0,3}[:=]\s{0,3}['"]?[^\s'"]{8,100}/i],
-];
-
+// Credentials: the canonical shared masker decides what looks like one (shapes, key blocks, tokens, plain-language "password is x",
+// look-alike letters, encodings). The lab only asks it which rules fired, on the head and tail of a long field. The names returned are the
+// shared masker's rule names (assignment, phrase, prefix-token, jwt, pem, bearer ...), not lab-invented ones.
+const NOT_A_RULE = new Set(['non-string', 'error', 'unsupported']);
 export function findSecrets(text) {
-  const t = plain(text); const out = [];
-  for (const [id, re] of SECRETS) if (re.test(t)) out.push(id);
-  return out;
+  const stats = createStats();
+  sharedMaskText(scanWindow(text), { stats });
+  return Object.keys(stats.byDetector).filter((id) => !NOT_A_RULE.has(id));
 }
 
-// Every secret-shaped run replaced by a marker. Not shortened: used on whole response objects (maskDeep) and by redact().
-export function maskSecrets(text) {
-  let t = String(text ?? '');
-  if (t.length > 20_000) t = `${t.slice(0, 10_000)}\n[... omitted ...]\n${t.slice(-10_000)}`;
-  t = t.replace(INVISIBLE_CHARS, '');
-  for (const [id, re] of SECRETS) t = t.replace(new RegExp(re.source, `${re.flags.replace('g', '')}g`), `[REDACTED:${id}]`);
-  return t;
-}
-
-// What an audit record may keep: secrets masked, control characters made visible, length capped.
-export function redact(text, max = 120) {
-  return maskSecrets(scanWindow(text)).replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, ' ').slice(0, max);
-}
-
-// A copy of any JSON-like value with every string masked. Iterative (a hostile value cannot overflow the stack).
-export function maskDeep(value) {
-  const root = { v: value }; const out = { v: undefined };
-  const work = [[root, out, 'v']];
-  while (work.length) {
-    const [src, dst, key] = work.pop(); const x = src[key];
-    if (typeof x === 'string') dst[key] = maskSecrets(x);
-    else if (x === null || typeof x !== 'object') dst[key] = x;
-    else { const copy = Array.isArray(x) ? [] : {}; dst[key] = copy; for (const k of Object.keys(x).reverse()) work.push([x, copy, k]); } // reversed: keys keep their order
-  }
-  return out.v;
-}
+// Masking of what a visitor typed (answers, audit, echoes) lives in mask.js. These names are kept for the callers that import them here.
+export { maskText as maskSecrets, maskDeep, redact };
 
 const HIDDEN_PHRASES = ['ignore all previous instructions', 'ignore previous instructions', 'ignore the above', 'disregard your instructions', 'disregard all prior', 'do not tell the user', "don't tell the user", 'without telling the user', 'new instructions:', 'you must now', 'reveal your system prompt'];
 const INVISIBLE_FLAG = /[​-‏‪-‮⁠-⁤⁦-⁩\u{e0000}-\u{e007f}]/u;

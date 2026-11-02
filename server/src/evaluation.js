@@ -2,7 +2,8 @@
 // dialog each agent shows, and the raw hops. The Live path (live.js) runs the real hook script into the same gateway function,
 // so Mock and Live cannot drift: a test compares the table with the live engine for every scenario, agent and vertical.
 import { AGENT_IDS, agentById, nativeOutcome, nativeRequest, parsePayload, respond, unreachableOutcome, KIND_LABEL } from './agents.js';
-import { evaluateCall, redact } from './detect.js';
+import { evaluateCall } from './detect.js';
+import { maskText, redact } from './mask.js';
 import { SCENARIOS, materialize, mcpAllowFor } from './data.js';
 import { VERTICALS, fillDeep } from './cast.js';
 import { identityFrom, mockCertSubject } from './identity.js';
@@ -17,11 +18,32 @@ export function scenarioCall(cast, id) {
   return { scenario: s, call: JSON.parse(materialize(JSON.stringify(fillDeep(s.call, cast)))) };
 }
 
-// One-line text of a call for the audit and the dialog. Secrets are redacted.
+// The arguments of an MCP call as NAMES and TYPES only: {id: number, repo: text(15)}. A value under a name the masker does not know cannot be told from
+// ordinary text (a bare secret under "renamed_field"), so no argument value is ever put into the audit, a dialog or a one-line summary. The names are
+// masked and cut; at most 8 are listed.
+const MAX_ARGS_SHOWN = 8;
+function argShape(args) {
+  if (args === null || typeof args !== 'object') return '{}';
+  if (Array.isArray(args)) return `[list(${args.length})]`;
+  const keys = Object.keys(args);
+  const kind = (v) => (typeof v === 'string' ? `text(${v.length})` : Array.isArray(v) ? `list(${v.length})` : v === null ? 'null' : typeof v);
+  const shown = keys.slice(0, MAX_ARGS_SHOWN).map((k) => `${redact(k, 30)}: ${kind(args[k])}`);
+  return `{${shown.join(', ')}${keys.length > MAX_ARGS_SHOWN ? `, ... ${keys.length - MAX_ARGS_SHOWN} more` : ''}}`;
+}
+
+// One-line text of a call for the audit and the dialog. Secrets are masked, then the line is cut to 140 characters.
+// An MCP call is "server/tool {argument names and types}". A keyword in the server name and its value in the tool name ("password" / "hunter2xyz")
+// are two words to a reader, so the pair is masked once with a space between them; if that finds something the line is shown with the space
+// (the slash is lost), otherwise the usual slash form is masked and shown.
 export function summarize(call) {
-  const raw = call.kind === 'prompt' ? call.text : call.kind === 'shell' ? call.command : call.kind === 'file_read' ? call.path
-    : call.kind === 'mcp_call' ? `${call.server}/${call.tool} ${JSON.stringify(call.args ?? {})}` : `${call.server}/${call.tool} returned: ${call.result}`;
-  return redact(String(raw ?? '').replace(/\s+/g, ' '), 140);
+  if (call.kind === 'mcp_call' || call.kind === 'tool_result') {
+    // a tool result is masked ON ITS OWN first: put behind "server tool returned: " the shared masker no longer sees a table or a JSON pair that starts a line
+    const rest = call.kind === 'mcp_call' ? argShape(call.args) : `returned: ${maskText(call.result)}`;
+    const spaced = `${call.server} ${call.tool} ${rest}`;
+    const masked = maskText(spaced);
+    return redact(masked !== spaced ? masked : `${call.server}/${call.tool} ${rest}`, 140);
+  }
+  return redact(call.kind === 'prompt' ? call.text : call.kind === 'shell' ? call.command : call.path, 140); // masked first, then cut
 }
 
 // The gateway's work for a call already parsed from a hook payload.

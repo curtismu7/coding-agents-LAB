@@ -187,14 +187,14 @@ test('POST /api/hook directly: native answer, identity, bounded body; bad bodies
 
 test('workspaces are isolated and Reset clears only the caller\'s audit and gaps', async () => {
   await withServer(async (url) => {
-    for (const ws of ['w-a', 'w-b']) {
+    for (const ws of ['w-aa', 'w-bb']) {
       await post(url, '/api/evaluate', { mode: 'mock', agent: 'cursor', scenario: 'benign' }, { 'x-workspace': ws });
       await post(url, '/api/evaluate', { mode: 'mock', agent: 'cursor', scenario: 'benign', down: true }, { 'x-workspace': ws });
     }
-    await post(url, '/api/reset', {}, { 'x-workspace': 'w-a' });
+    await post(url, '/api/reset', {}, { 'x-workspace': 'w-aa' });
     const n = async (p, ws) => (await (await fetch(`${url}/api/${p}`, { headers: { 'x-workspace': ws } })).json())[p];
-    assert.deepEqual([(await n('audit', 'w-a')).length, (await n('gaps', 'w-a')).length], [0, 0]);
-    assert.deepEqual([(await n('audit', 'w-b')).length, (await n('gaps', 'w-b')).length], [1, 1]);
+    assert.deepEqual([(await n('audit', 'w-aa')).length, (await n('gaps', 'w-aa')).length], [0, 0]);
+    assert.deepEqual([(await n('audit', 'w-bb')).length, (await n('gaps', 'w-bb')).length], [1, 1]);
   });
 });
 
@@ -202,7 +202,7 @@ test('oversized and malformed bodies get a short JSON error, never a stack trace
   await withServer(async (url) => {
     const raw = (body) => fetch(`${url}/api/evaluate`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body });
     const big = await raw(JSON.stringify({ pad: 'x'.repeat(17_000) }));
-    assert.deepEqual([big.status, await big.json()], [413, { error: 'payload_too_large' }]);
+    assert.deepEqual([big.status, await big.json()], [413, { error: 'too_large' }]); // CHANGED: the shared recipe's fixed code (was payload_too_large)
     const bad = await raw('{not json');
     assert.equal(bad.status, 400);
     assert.ok(!/\/Users\/|node_modules|at \w+ \(/.test(JSON.stringify(await bad.json())));
@@ -264,7 +264,7 @@ test('B1: a credential typed as your own action is absent from EVERY field of EV
 test('B1: the MCP server name is masked in the reason, the dialog and the native answer; the hook endpoint never echoes a credential either', async () => {
   await withServer(async (url) => {
     const r = await (await post(url, '/api/evaluate', { mode: 'live', agent: 'cursor', custom: { kind: 'mcp_call', text: `${secrets.sk} do_it x` } })).json();
-    assert.match(r.evaluation.reason, /\[REDACTED:api-secret-key\]/);
+    assert.match(r.evaluation.reason, /\[masked\]/);
     for (const part of [r.evaluation, r.dialog, r.native, r.hookRequest, r.hops, r.call]) assert.ok(!JSON.stringify(part).includes(secrets.sk));
     const events = { 'claude-code': [{ hook_event_name: 'UserPromptSubmit', prompt: `x ${secrets.aws}` }, { hook_event_name: 'PreToolUse', tool_name: `mcp__${secrets.sk}__t`, tool_input: { k: secrets.gh } }, { hook_event_name: 'PostToolUse', tool_name: 'mcp__srv__t', tool_input: {}, tool_response: `r ${secrets.slack}` }] };
     for (const payload of events['claude-code']) {

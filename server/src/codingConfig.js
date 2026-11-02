@@ -35,16 +35,18 @@ export function validateConfig(input) {
   const errors = []; const warnings = []; const e = (field, message) => errors.push({ field, message });
   if (input === null || typeof input !== 'object' || Array.isArray(input)) return { ok: false, errors: [{ field: '(config)', message: 'must be an object' }], warnings, config: null };
   const known = new Set(['Enabled', 'FailClosed', 'Agents', 'Gateways', ...CARRIED]);
-  for (const k of Object.keys(input)) if (!known.has(k)) e(k, 'is not a CodingAgent field');
+  // No error ever carries a key, a value or a slice of one that the caller typed: the texts below are fixed.
+  if (Object.keys(input).some((k) => !known.has(k))) e('(unknown field)', `an unknown field was sent; the CodingAgent fields are ${[...known].join(', ')}`);
   const config = { Enabled: false, FailClosed: false, Agents: {}, Gateways: [] };
   for (const k of ['Enabled', 'FailClosed']) {
     if (input[k] === undefined) continue;
     if (typeof input[k] !== 'boolean') e(k, 'must be true or false'); else config[k] = input[k];
   }
   if (input.Agents !== undefined) {
+    let unknownAgent = false;
     if (input.Agents === null || typeof input.Agents !== 'object' || Array.isArray(input.Agents)) e('Agents', 'must be an object of agent name to true or false');
     else for (const [k, v] of Object.entries(input.Agents)) {
-      if (!AGENT_IDS.includes(k)) e('Agents', `"${String(k).slice(0, 30)}" is not one of: ${AGENT_IDS.join(', ')}`);
+      if (!AGENT_IDS.includes(k)) { if (!unknownAgent) e('Agents', `a name that is not an agent was sent; the agents are ${AGENT_IDS.join(', ')}`); unknownAgent = true; }
       else if (typeof v !== 'boolean') e('Agents', `${k} must be true or false`);
       else config.Agents[k] = v;
     }
@@ -57,9 +59,9 @@ export function validateConfig(input) {
       for (const g of input.Gateways) {
         let u = null;
         try { u = typeof g === 'string' && g.length <= 200 && !/['"`$\\\s]/.test(g) ? new URL(g) : null; } catch { u = null; }
-        if (!u || u.protocol !== 'https:' || u.username || u.password) e('Gateways', `"${String(g).slice(0, 40)}" must be an https URL without credentials`);
-        else if (!isReservedHost(u.hostname)) e('Gateways', `"${u.hostname}" must be an .example or .invalid host (the lab names no real host)`);
-        else if (seen.has(u.href)) e('Gateways', `"${u.href}" is listed twice`);
+        if (!u || u.protocol !== 'https:' || u.username || u.password || u.search || u.hash) e('Gateways', 'each endpoint must be an https URL of at most 200 characters, without credentials, a query string, a fragment, quotes, backslashes or spaces');
+        else if (!isReservedHost(u.hostname)) e('Gateways', 'each endpoint must be on an .example or .invalid host (the lab names no real host)');
+        else if (seen.has(u.href)) e('Gateways', 'an endpoint is listed twice');
         else { seen.add(u.href); config.Gateways.push(u.href); }
       }
     }
