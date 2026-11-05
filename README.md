@@ -3,7 +3,7 @@
 A simulation of "Coding Agents": inspection inside Claude Code, Cursor, Codex, Gemini CLI, GitHub Copilot and Antigravity, at the agent itself, through each agent's own hook interface.
 
 Tier: Demo
-Repo: https://github.com/ping-sandbox/coding-agents-LAB
+Repo: https://github.com/curtismu7/coding-agents-LAB
 Catalog: D102
 
 **Tier: Demo.** Source: the Ping ID4AI Workforce H2 2026 deck, slide 49 (release 2026-11-02). **Every product claim is a Ping release claim, UNVERIFIED on our tenant.** Nothing here calls a real gateway, identity provider or tenant, nothing leaves your machine, and the lab never writes any agent configuration anywhere.
@@ -58,7 +58,7 @@ The edge follows the shared Express recipe, in this order: Host check, same-orig
 Prerequisites: Node 26 or newer. Docker only if you use the Docker form. Mock mode works with no setup at all: no tenant, no credentials, no settings file.
 
 ```
-git clone https://github.com/ping-sandbox/coding-agents-LAB.git
+git clone https://github.com/curtismu7/coding-agents-LAB.git
 cd coding-agents-LAB
 npm ci
 npm run build
