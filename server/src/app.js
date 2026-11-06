@@ -34,7 +34,7 @@ const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
 // in it is a JSON 404 (under /api) or the page shell (a page address).
 const ROUTES = {
   '/': ['GET'],
-  '/api/health': ['GET'], '/api/story': ['GET'], '/api/diagram': ['GET'], '/api/sources': ['GET'], '/api/info': ['GET'], '/api/audit': ['GET'], '/api/gaps': ['GET'],
+  '/api/health': ['GET'], '/api/story': ['GET'], '/api/diagram': ['GET'], '/api/sources': ['GET'], '/api/info': ['GET'], '/api/mode': ['GET', 'POST'], '/api/audit': ['GET'], '/api/gaps': ['GET'],
   '/api/config': ['POST'], '/api/evaluate': ['POST'], '/api/hook': ['POST'], '/api/reset': ['POST'],
 };
 const METHODS = buildMethodTable(ROUTES);
@@ -43,6 +43,8 @@ const fail = (res, status, code, headers = {}) => res.set(headers).status(status
 const CONFIG = process.env.CUSTOMER_CONFIG || path.resolve(HERE, '../../customer.config.json');
 
 export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE, webDist = WEB_DIST, env = process.env } = {}) {
+  // The runtime server-side mode (rule 19): the source the toggle switches. It starts at the configured default.
+  let currentSource = () => defaultMode();
   const app = express();
   app.disable('x-powered-by');
   app.use(hostCheck);
@@ -80,7 +82,22 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.get('/diagram', (req, res) => { labData(res); res.json(buildDiagram(castFor(req), DIAGRAM_NAMES.includes(req.query.name) ? req.query.name : 'hook-flow')); });
   // The documentation each "documented" shape was read from: plain text for a presenter to copy. The lab never fetches them.
   api.get('/sources', (_req, res) => { labData(res); res.json(SOURCES); });
-  api.get('/info', (_req, res) => { labData(res); res.json({ mode: defaultMode(), modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true, realAvailable: aiGuardConfig().configured, realReason: realNotConfiguredReason() }); });
+  api.get('/info', (_req, res) => { labData(res); const src = currentSource(); res.json({ mode: src, modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true, source: src, realAvailable: aiGuardConfig().configured, realReason: realNotConfiguredReason() }); });
+
+  // Rule 19: the Mock/Real toggle's runtime server-side mode. source "real" is refused 409 while the AI Gateway
+  // settings are incomplete; "mock" and "live" (the local engine, loopback-only) always switch.
+  const rule19View = () => ({ source: currentSource(), realAvailable: aiGuardConfig().configured, realReason: realNotConfiguredReason() });
+  api.get('/mode', (_req, res) => { labData(res); res.json(rule19View()); });
+  api.post('/mode', (req, res, next) => {
+    try {
+      labData(res);
+      const b = req.body !== null && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+      if (Object.keys(b).length !== 1 || !['mock', 'real'].includes(b.source)) return fail(res, 400, 'bad_mode');
+      if (b.source === 'real' && !aiGuardConfig().configured) return res.status(409).json({ error: 'real_not_available', message: realNotConfiguredReason() });
+      currentSource = () => b.source; // runtime server-side state: every later read sees the switched mode
+      return res.json(rule19View());
+    } catch (e) { return next(e); }
+  });
 
   // The workspace rule: an id that is not lowercase letters, digits and hyphens, or that the masker takes for a credential, is refused here,
   // before any state exists for it, and is never echoed.

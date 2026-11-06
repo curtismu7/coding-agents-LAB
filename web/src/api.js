@@ -15,3 +15,7 @@ export async function postJson(url, payload) {
 }
 
 export const resetWorkspace = () => workspaceFetch("/api/reset", { method: "POST", body: "{}" }).then((r) => r.ok);
+
+// Rule 19: POST /api/mode {source:"mock"|"real"}. Returns { ok, status, body } (like postJson): a refused
+// switch (Real without the AI Gateway settings) comes back as data, never an exception.
+export const setMode = (source) => postJson("/api/mode", { source });

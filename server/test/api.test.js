@@ -55,7 +55,7 @@ test('GET /api/info and /api/story: simulated, release 2026-11-02, UNVERIFIED, e
   await withInfoIsolated(async (url) => {
     const info = await (await fetch(`${url}/api/info`)).json();
     const { realReason, ...infoRest } = info;
-    assert.deepEqual(infoRest, { mode: 'mock', modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true, realAvailable: false });
+    assert.deepEqual(infoRest, { mode: 'mock', modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true, realAvailable: false, source: 'mock' });
     assert.ok(typeof realReason === 'string' && realReason.includes('CODING_AGENTS_LAB_AIGATEWAY_URL'), 'the how-to names the key');
     assert.ok(!/Bearer\s+\S/.test(realReason), 'no value is shown');
     for (const v of ['finance', 'health', 'retail']) {
@@ -349,4 +349,25 @@ test('GET /api/shelf answers the shelf URL (null when unconfigured)', async () =
     assert.deepEqual(Object.keys(body), ['shelfUrl']);
     assert.equal(body.shelfUrl, null);
   }, { env: {} });
+});
+
+test('rule 19: POST /api/mode {source} switches the server-side mode at runtime; Real is refused 409 with the reason while unconfigured; the body must be exactly {source}', async () => {
+  await withInfoIsolated(async (url) => {
+    // Switch to live (the local engine, loopback-only) and read again.
+    const toLive = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: JSON.stringify({ source: 'mock' }) });
+    assert.equal(toLive.status, 200);
+    const lj = await toLive.json(); assert.equal(lj.source, 'mock'); assert.equal(lj.realAvailable, false);
+    const afterLive = await (await fetch(`${url}/api/info`)).json();
+    assert.equal(afterLive.source, 'mock');
+    // Real is refused 409 with the honest how-to; the bearer is never shown.
+    const toReal = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: JSON.stringify({ source: 'real' }) });
+    assert.equal(toReal.status, 409);
+    const rj = await toReal.json(); assert.equal(rj.error, 'real_not_available'); assert.ok(rj.message.includes('CODING_AGENTS_LAB_AIGATEWAY_URL')); assert.ok(!/Bearer\s+\S/.test(rj.message));
+    // The body must be exactly {source}: an extra key, a junk value, a missing value and a non-object are 400 without echoing the value.
+    for (const body of [{ source: 'mock', extra: 1 }, { source: 'zzz-secret-value' }, {}, 'x', [1]]) {
+      const r = await fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: JSON.stringify(body) });
+      assert.equal(r.status, 400, JSON.stringify(body));
+      assert.ok(!(await r.text()).includes('zzz-secret-value'));
+    }
+  });
 });

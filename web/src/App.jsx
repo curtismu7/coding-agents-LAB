@@ -6,7 +6,7 @@ import GatewayTab from "./components/GatewayTab";
 import ConfigTab from "./components/ConfigTab";
 import DiagramTab from "./components/DiagramTab";
 import TalkTrack from "./components/TalkTrack";
-import { getJson, resetWorkspace } from "./api";
+import { getJson, resetWorkspace, setMode } from "./api";
 
 export const TABS = [
   { id: "agents", label: "Agents" },
@@ -53,6 +53,8 @@ export default function App() {
   const tabsRef = useRef(null);
 
   useEffect(() => { getJson("/api/info").then((i) => { setModeState((m) => m || savedMode() || i.mode); setRealAvailable(i.realAvailable === true); }, () => setModeState((m) => m || savedMode() || "mock")); }, []);
+  // Rule 19: Real is disabled with the server's reason while the AI Gateway settings are incomplete.
+  const realWhy = "Real mode is not configured: set CODING_AGENTS_LAB_AIGATEWAY_URL (or CENTRAL_AGENT_A2A_URL) and its bearer in the shared settings file and restart the lab. The bearer is never shown.";
   useEffect(() => {
     getJson(`/api/story?vertical=${encodeURIComponent(vertical)}`).then((j) => { setStory(j); setConfig((c) => c || structuredClone(j.defaultConfig)); setError(null); }, (e) => setError(e.message));
   }, [vertical]);
@@ -61,7 +63,18 @@ export default function App() {
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
-  const setMode = (m) => { setModeState(m); try { window.localStorage.setItem(MODE_KEY, m); } catch { /* storage blocked */ } };
+  const applyMode = (m) => { setModeState(m); try { window.localStorage.setItem(MODE_KEY, m); } catch { /* storage blocked */ } };
+  // Rule 19: the Mock/Real toggle POSTs the source to the server's runtime mode, then reloads the story data.
+  // A refusal (Real without the AI Gateway settings, the 409 body) is data, not an exception; it is shown as an error.
+  const switchSource = useCallback(async (source) => {
+    if (source === mode) return;
+    const r = await setMode(source);
+    if (!r.ok) { setError(r.body?.message || r.body?.detail || `Could not switch to ${source}.`); return; }
+    // "real" maps to the engine's "live" mode word (the real hook script on loopback): the tabs read
+    // mode === "live" to run the hook script path; the server's own source word stays "real".
+    applyMode(source === "real" ? "live" : "mock");
+    setRealAvailable(r.body?.realAvailable === true);
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const select = (id) => { setTab(id); try { window.history.replaceState(null, "", `#${id}`); } catch { /* ignore */ } };
 
   // Keep the active tab fully in view in the scrolling tab strip (375px).
@@ -110,9 +123,8 @@ export default function App() {
           <div className="head__tools">
             <ShelfLink />
             <div className="seg" role="group" aria-label="Mode">
-              <button type="button" aria-pressed={mode === "mock"} onClick={() => setMode("mock")} data-testid="mode-mock">Mock</button>
-              <button type="button" aria-pressed={mode === "live"} onClick={() => setMode("live")} data-testid="mode-live">Live</button>
-              <button type="button" aria-pressed={mode === "real"} disabled={!realAvailable} title={realAvailable ? "Real enforcement: the hook event is evaluated by the tenant's live AI Gateway" : "Real mode is not configured: set CODING_AGENTS_LAB_AIGATEWAY_URL (or CENTRAL_AGENT_A2A_URL) and its bearer in the shared settings file and restart the lab. The bearer is never shown."} onClick={() => setMode("real")} data-testid="mode-real">Real</button>
+              <button type="button" aria-pressed={mode === "mock"} onClick={() => switchSource("mock")} data-testid="mode-mock">Mock</button>
+              <button type="button" aria-pressed={mode === "real" || mode === "live"} disabled={!realAvailable} title={realAvailable ? "Real enforcement: the hook event is evaluated by the tenant's live AI Gateway" : realWhy} onClick={() => switchSource("real")} data-testid="mode-real">Real</button>
             </div>
             <label className="shell-theme">Theme
               <select value={theme} onChange={(e) => pickTheme(e.target.value)}>
