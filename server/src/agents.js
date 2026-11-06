@@ -76,6 +76,7 @@ const claude = {
     if (kind === 'tool_result') return { decision: 'block', reason, hookSpecificOutput: { hookEventName: 'PostToolUse', updatedToolOutput: `[withheld by policy] ${reason}` } };
     return wrapPre('PreToolUse', d, reason);
   },
+  skin: { kind: 'terminal', title: 'claude-code — /work/… (managed hooks active)', marker: '●', note: 'Claude Code runs in a terminal; managed hooks are invisible until they answer.' },
   dialog: { title: 'Claude Code', ask: 'Claude wants to proceed. A managed hook asks you to confirm.', deny: 'Blocked by a managed hook', buttons: ['Yes', 'No'] },
 };
 
@@ -121,6 +122,7 @@ const cursor = {
     if (d === 'allow') return { permission: 'allow' };
     return { permission: d, user_message: reason, agent_message: `Policy: ${reason}` };
   },
+  skin: { kind: 'card', title: 'Cursor — /work/…', marker: '◆', note: 'Cursor shows hook answers as an IDE notification card.' },
   dialog: { title: 'Cursor', ask: 'Cursor asks before it runs this. A managed hook requested confirmation.', deny: 'Blocked by a managed hook', buttons: ['Allow', 'Reject'] },
 };
 
@@ -167,6 +169,7 @@ const codex = {
     if (kind === 'prompt' || kind === 'tool_result') return { decision: 'block', reason };
     return wrapPre('PreToolUse', 'deny', reason);
   },
+  skin: { kind: 'terminal', title: 'codex — session', marker: '›', note: 'Codex is a terminal TUI; a managed refusal replaces the tool call.' },
   dialog: { title: 'Codex', ask: 'Codex has no working ask for this hook (documented), so the request is refused instead.', deny: 'Blocked by a managed hook', buttons: ['OK'] },
 };
 
@@ -210,6 +213,7 @@ const gemini = {
     return null;
   },
   respond(kind, d, reason) { return d === 'allow' ? { decision: 'allow' } : { decision: 'deny', reason }; },
+  skin: { kind: 'terminal', title: 'gemini — session', marker: '✦', note: 'Gemini CLI is a terminal TUI; a hook refusal appears in the session.' },
   dialog: { title: 'Gemini CLI', ask: 'Gemini CLI has no ask for this hook (not documented), so the request is refused instead.', deny: 'Tool call blocked by a system hook', buttons: ['OK'] },
 };
 
@@ -250,6 +254,7 @@ const copilot = {
     return null;
   },
   respond(kind, d, reason) { return d === 'allow' ? {} : { permissionDecision: d, permissionDecisionReason: reason }; },
+  skin: { kind: 'card', title: 'Visual Studio Code — GitHub Copilot', marker: '⎇', note: 'Copilot tool calls surface as a VS Code notification toast.' },
   dialog: { title: 'GitHub Copilot', ask: 'Copilot asks you to approve this tool call (a managed hook requested it).', deny: 'Denied by a policy hook', buttons: ['Approve', 'Deny'] },
 };
 
@@ -288,6 +293,7 @@ const antigravity = {
     return null;
   },
   respond(kind, d, reason) { return d === 'allow' ? { decision: 'allow' } : { decision: d, reason }; },
+  skin: { kind: 'card', title: 'Antigravity — editor', marker: '✱', note: 'Antigravity shows hook answers in its editor window.' },
   dialog: { title: 'Antigravity', ask: 'Antigravity asks you to approve this step (a hook requested it).', deny: 'Blocked by a hook', buttons: ['Approve', 'Reject'] },
 };
 

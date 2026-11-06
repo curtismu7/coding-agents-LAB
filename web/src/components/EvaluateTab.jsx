@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, postJson } from "../api";
 import { visible } from "../safeText";
-import { AuditTable, ChannelNote, ClaimTag, Dialog, Findings, Hops, Json, Verdict } from "./Bits";
+import { AuditTable, ChannelNote, ClaimTag, AgentDialog, Findings, Hops, Json, Verdict } from "./Bits";
 
 export function ResultView({ r }) {
   if (!r.installed) return <p className="panel" data-state="warn" data-testid="untouched">{visible(r.note)}</p>;
@@ -31,7 +31,7 @@ export function ResultView({ r }) {
         </section>
         <section className="panel" aria-label="The permission dialog">
           <h3 className="panel__sub">4. What the developer sees in {r.agentName}</h3>
-          <Dialog dialog={r.dialog} />
+          <AgentDialog dialog={r.dialog} agentId={r.agent} />
         </section>
       </div>
       <Hops hops={r.hops} traceId={r.traceId} />

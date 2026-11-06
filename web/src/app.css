@@ -103,3 +103,37 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .pat-elabel[data-dim="true"] { opacity: 0.55; }
 @media (max-width: 900px) { .pat-canvas { height: 520px; } }
 @media (max-width: 600px) { .pat-node { font-size: 15px; } .pat-elabel { font-size: 15px; } .head__title { font-size: 18px; } .pat-canvas { height: 560px; } .panel { padding: 10px; } }
+
+/* ---- Agent "skin": each dialog dressed as the real client's chrome. Light/dark safe:
+   skins set only chrome colours (bars, borders, terminal panels); text stays var(--text) on
+   var(--surface) or a fixed near-black terminal background with its own light text. ------- */
+.term { border: 2px solid var(--border); border-radius: 10px; overflow: hidden; font-family: var(--font-mono); font-size: 13px; }
+.term__bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-weight: 700; background: var(--box-dark); color: var(--on-box); border-bottom: 2px solid var(--border); }
+.term__dots { display: inline-flex; gap: 5px; }
+.term__dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.term__body { background: #14181f; color: #e6e6e6; padding: 10px 12px; overflow-wrap: anywhere; }
+.term__body .accent { font-weight: 700; }
+.term--denied .term__body { border-left: 6px solid #d20e0f; }
+.term--asks .term__body { border-left: 6px solid #b98700; }
+.term--proceeds .term__body { border-left: 6px solid #1a7f37; }
+
+/* Claude Code: a bare terminal session, its orange ● prompt marker */
+.skin-claude .term__bar { background: #1f1d1a; }
+.skin-claude .term__body .promptmark { color: #d97757; font-weight: 700; }
+/* Cursor: an IDE notification card inside the terminal body */
+.skin-cursor .term__bar { background: #171a21; }
+.skin-cursor .card { background: #1d2230; border: 1px solid #3a4358; border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
+.skin-cursor .card__title { color: #a8b3cf; font-weight: 700; }
+/* Codex: OpenAI-ish terminal, minimal */
+.skin-codex .term__bar { background: #10231b; }
+.skin-codex .promptmark { color: #10a37f; font-weight: 700; }
+/* Gemini CLI: the blue gradient banner look, flat here */
+.skin-gemini .term__bar { background: #10233f; }
+.skin-gemini .promptmark { color: #5b9dff; font-weight: 700; }
+/* Copilot: a VS Code-style notification toast */
+.skin-copilot .term__bar { background: #202033; }
+.skin-copilot .card { background: #252540; border: 1px solid #44446a; border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
+.skin-copilot .card__title { color: #b3b3d9; font-weight: 700; }
+/* Antigravity: a window with traffic dots, editor chrome */
+.skin-antigravity .term__bar { background: #22162b; }
+.skin-antigravity .promptmark { color: #c678dd; font-weight: 700; }

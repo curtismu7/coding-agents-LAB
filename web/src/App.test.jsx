@@ -109,7 +109,7 @@ describe("evaluate tab, Mock", () => {
     expect(screen.getByTestId("hook-request")).toHaveTextContent("UserPromptSubmit");
     expect(screen.getByTestId("native-response")).toHaveTextContent('"decision": "block"');
     expect(screen.getByTestId("dialog")).toHaveAttribute("data-state", "denied");
-    expect(screen.getByTestId("dialog-reason")).toHaveTextContent(/never reaches the model provider|before it reaches the model provider/);
+    expect(screen.getByTestId("dialog")).toHaveTextContent(/never reaches the model provider|before it reaches the model provider/);
     expect(screen.getByTestId("who")).toHaveTextContent("maya.chen@fabrikam.example");
     expect(screen.getByTestId("channel-note")).toHaveTextContent(/documented/);
     expect(screen.getByTestId("scan-limit")).toHaveTextContent(/first 4000 and the last 4000/);

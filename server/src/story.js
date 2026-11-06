@@ -21,7 +21,7 @@ function agentView(a, cast) {
     if (ch.canBlock) responses.deny = respond(a.id, kind, 'deny', 'Blocked by policy (example reason).');
     return { ...row, request: nativeRequest(a.id, call, ctxFor(cast)), responses };
   });
-  return { id: a.id, name: a.name, vendor: a.vendor, managed: a.managed, managedNote: a.managedNote, configCaveat: a.configCaveat, sources: a.sources, channels, dialog: a.dialog };
+  return { id: a.id, name: a.name, vendor: a.vendor, managed: a.managed, managedNote: a.managedNote, configCaveat: a.configCaveat, sources: a.sources, channels, dialog: a.dialog, skin: a.skin };
 }
 
 // The story with the cast filled in. The mock credential in the prompt scenario is built at run time (data.js).

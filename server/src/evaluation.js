@@ -81,9 +81,10 @@ export function buildMockTable() {
 export function dialogFor({ agent, call, outcome, reason }) {
   const a = agentById(agent); const d = a.dialog;
   const action = `${KIND_LABEL[call.kind]}: ${summarize(call)}`;
-  if (outcome.native === 'deny') return { state: 'denied', title: d.title, heading: d.deny, action, message: reason, buttons: ['OK'], note: outcome.note || null };
-  if (outcome.native === 'ask') return { state: 'asks', title: d.title, heading: d.ask, action, message: reason, buttons: d.buttons, note: outcome.note || null };
-  return { state: 'proceeds', title: d.title, heading: 'No dialog: the action proceeds', action, message: reason, buttons: [], note: outcome.note || null };
+  const skin = a.skin || null;
+  if (outcome.native === 'deny') return { state: 'denied', title: d.title, heading: d.deny, action, message: reason, buttons: ['OK'], note: outcome.note || null, skin };
+  if (outcome.native === 'ask') return { state: 'asks', title: d.title, heading: d.ask, action, message: reason, buttons: d.buttons, note: outcome.note || null, skin };
+  return { state: 'proceeds', title: d.title, heading: 'No dialog: the action proceeds', action, message: reason, buttons: [], note: outcome.note || null, skin };
 }
 
 // ---- Raw hops with W3C traceparent. ------------------------------------------------------------------------------------------

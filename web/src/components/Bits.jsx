@@ -68,6 +68,40 @@ export function Dialog({ dialog }) {
   );
 }
 
+// The dialog dressed as the real client: a terminal window (Claude Code, Codex, Gemini CLI) or an
+// editor notification card (Cursor, Copilot, Antigravity). Same content as Dialog; the chrome is
+// per-agent (skin from the agent data, keyed by the agent's id). The "developer sees" claim stays
+// honest: it is a rendering of the native answer in that client's shape, not a product screenshot.
+const SKIN_CLASS = { "claude-code": "claude", cursor: "cursor", codex: "codex", "gemini-cli": "gemini", copilot: "copilot", antigravity: "antigravity" };
+export function AgentDialog({ dialog, agentId }) {
+  const skin = dialog.skin || null;
+  if (!skin || !SKIN_CLASS[agentId]) return <Dialog dialog={dialog} />;
+  const stateClass = dialog.state === "denied" ? "term--denied" : dialog.state === "asks" ? "term--asks" : "term--proceeds";
+  return (
+    <div className={`term ${stateClass} skin-${SKIN_CLASS[agentId]}`} data-testid="dialog" data-state={dialog.state}>
+      <div className="term__bar"><span className="term__dots"><i /><i /><i /></span> {skin.title}</div>
+      <div className="term__body">
+        {skin.kind === "card" && dialog.state !== "proceeds" ? (
+          <div className="card">
+            <div className="card__title">{dialog.heading}</div>
+            <div>{visible(dialog.action)}</div>
+            <div>{visible(dialog.message)}</div>
+            {dialog.buttons.length > 0 && <div className="dialog__buttons">{dialog.buttons.map((b) => <span key={b} className="dialog__button">{b}</span>)}</div>}
+          </div>
+        ) : (
+          <>
+            <div><span className="promptmark">{skin.marker}</span> {visible(dialog.action)}</div>
+            {dialog.state !== "proceeds" && <div>⎿ {dialog.heading} — {visible(dialog.message)}</div>}
+            {dialog.buttons.length > 0 && <div className="dialog__buttons">{dialog.buttons.map((b) => <span key={b} className="dialog__button">{b}</span>)}</div>}
+          </>
+        )}
+        {dialog.note && <div className="muted" data-testid="dialog-note">{visible(dialog.note)}</div>}
+        <div className="muted">{skin.note}</div>
+      </div>
+    </div>
+  );
+}
+
 export function Hops({ hops, traceId }) {
   return (
     <details className="hops" data-testid="hops">
