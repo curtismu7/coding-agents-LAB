@@ -100,7 +100,7 @@ export const mapAnswer = mapGatewayAnswer; // shorter alias for callers
 
 // ---- The outbound call --------------------------------------------------------------------------------------------
 // fetchFn is injectable for tests. The URL is built ONLY from the configured endpoint, never from input.
-export async function sendToAiGuard({ call, cfg, traceparent, fetchFn = fetch, timeoutMs = 8000 }) {
+export async function sendToAiGuard({ call, cfg, traceparent, fetchFn = fetch, timeoutMs = 30000 }) {
   const text = eventText(call);
   const body = {
     jsonrpc: '2.0',

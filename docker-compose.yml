@@ -14,6 +14,13 @@ services:
       CALAB_BIND: 0.0.0.0
       CODING_AGENTS_LAB_MODE: ${CODING_AGENTS_LAB_MODE:-mock}
       LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-}
+    # Real mode needs the owner-set AI Gateway endpoint + bearer (shared settings file, rule 19/94);
+    # host-gateway is only reachable names for the netguard's one allowed outbound.
+    env_file:
+      - path: ${STANDALONE_ENV:-/Users/cmuir/Development/.env}
+        required: false
+    extra_hosts:
+      - "local.ping-devops.com:host-gateway"
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
