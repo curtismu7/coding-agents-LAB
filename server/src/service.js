@@ -104,7 +104,7 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
     const traceparent = formatTraceparent(trace.traceId, trace.span());
     let sent; let hops;
     try {
-      sent = await sendToAiGuard({ call, cfg, traceparent });
+      sent = await sendToAiGuard({ call, cfg, traceparent, agent, identity });
     } catch {
       // The gateway could not be reached: the same failure policy as a dead tunnel.
       const u = unreachableOutcome(agent, call.kind, !!config.FailClosed);

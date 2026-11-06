@@ -100,13 +100,23 @@ export const mapAnswer = mapGatewayAnswer; // shorter alias for callers
 
 // ---- The outbound call --------------------------------------------------------------------------------------------
 // fetchFn is injectable for tests. The URL is built ONLY from the configured endpoint, never from input.
-export async function sendToAiGuard({ call, cfg, traceparent, fetchFn = fetch, timeoutMs = 30000 }) {
+export async function sendToAiGuard({ call, cfg, traceparent, fetchFn = fetch, timeoutMs = 30000, agent, identity }) {
   const text = eventText(call);
   const body = {
     jsonrpc: '2.0',
     id: `cag-${Date.now()}`,
     method: 'message/send',
-    params: { message: { messageId: `cag-${Date.now()}-m`, role: 'user', parts: [{ kind: 'text', text }] } },
+    params: {
+      // The agent's claimed identity rides in the A2A metadata, so the gateway (and its audit) sees
+      // which coding agent fired and from which device. The gateway ignores or logs it at its own
+      // discretion - we measured that it does not verify client identity either way.
+      metadata: {
+        codingAgent: agent,
+        ...(identity?.device ? { device: identity.device } : {}),
+        ...(identity?.identity ? { developer: identity.identity } : {}),
+      },
+      message: { messageId: `cag-${Date.now()}-m`, role: 'user', parts: [{ kind: 'text', text }] },
+    },
   };
   const response = await fetchFn(jsonRpcUrl(cfg.url), {
     method: 'POST',

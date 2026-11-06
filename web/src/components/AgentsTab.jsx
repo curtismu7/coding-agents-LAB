@@ -66,6 +66,35 @@ export default function AgentsTab({ story }) {
           </div>
         ) : <p className="field-error" data-testid="no-event">{agent.name} has no hook event for this kind of action, so a hook never sees it. This is a coverage gap: the endpoint sensor is what still finds it.</p>}
       </section>
+
+      <section className="panel">
+        <h2 className="panel__title">Emulating any of them (no client install) <span className="tag" data-state="ok">measured</span></h2>
+        <p data-testid="emulation-claim">
+          A coding agent&apos;s hook is a small JSON protocol: the editor writes one event object to a command&apos;s stdin
+          and reads one native answer from its stdout. That makes every agent on this page <b>emulatable with one script</b> —
+          no editor install, no licence, no GUI. The lab&apos;s own hook script (<code>hooks/lab-hook.mjs --agent &lt;id&gt;</code>)
+          is exactly such a fake client for all six: feed it the request JSON shown above and it prints the native answer.
+        </p>
+        <div className="cols">
+          <div>
+            <h3 className="panel__sub">Try a fake Cursor, by hand</h3>
+            <Json value={{ sample: 'echo \'{"hook_event_name":"beforeShellExecution","command":"rm -rf /tmp/cache","cwd":"/work"}\' | node hooks/lab-hook.mjs --agent cursor', note: 'prints {"permission":"...","user_message":"..."} — the same bytes the real Cursor hook protocol uses' }} label="fake client" testId="fake-cursor" />
+          </div>
+          <div>
+            <h3 className="panel__sub">Why Privilege cannot tell the difference</h3>
+            <p className="muted" data-testid="emulation-why">
+              We measured the live gateway accepting requests with no client identity, a claimed client identity in
+              metadata, and arbitrary client headers — it verifies none of them: <b>enforcement is on the content</b>.
+              So &quot;which agent&quot; is a claim, not a proof: the identity that matters is the developer + device
+              (the certificate subject the hook carries), and whether Privilege ties that claim to a verified device
+              is exactly the product question a customer should ask. What the gateway guards against — the credential
+              in the prompt, the hidden instruction in the tool result — is present in every emulated agent, because
+              it rides in the event text, not the client.
+            </p>
+          </div>
+        </div>
+        <p className="muted" data-testid="emulation-table">The same trick covers the whole protection surface, per agent: a <b>prompt</b> is one object with a text field; a <b>shell command</b> one with the command string; a <b>file read</b> a path; an <b>MCP call</b> a tool name and arguments; a <b>tool result</b> the returned text. Real editors differ only in field names and in which of these events they expose (the matrix above: Copilot cannot refuse a prompt, Antigravity has no prompt event at all). To demo Privilege enforcing against any agent, pick it on the Evaluate tab — the lab speaks its dialect, and the agent&apos;s claimed identity rides with the event to the gateway.</p>
+      </section>
     </div>
   );
 }
