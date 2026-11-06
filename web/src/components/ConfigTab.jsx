@@ -63,6 +63,8 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
             </label>
             <p className="muted" id="gw-help">https, an .example or .invalid host, at most 5. These are the endpoints the generated text would carry; the lab&apos;s own hook only ever reaches loopback. In Real mode the ONE endpoint the hook event actually leaves for is set by the operator in the shared settings file (CODING_AGENTS_LAB_AIGATEWAY_URL), not here.</p>
             <p className="muted">{story.configFields.slice(4).map((f) => f.name).join(", ")}: <SourceTag swagger /> carried as in the schema, not interpreted by the lab.</p>
+            <h3 className="panel__sub">Intent encoder (Triton)</h3>
+            <p className="muted" data-testid="triton-note">The AIIntent signal needs an <b>encoder endpoint</b>: Privilege sends the action&apos;s text there and reads back a vector. We measured the console probing NVIDIA Triton&apos;s wire (KServe v2: <code>/v2</code>, <code>/model_info</code>, <code>/get_worker_address</code>). This lab ships a Triton server beside it (see the README for the address): model <code>intent-encoder</code>, <code>POST /v2/models/intent-encoder/infer</code>, TEXT in, a 384-dim EMBEDDING out. The model is a lab stand-in (deterministic hashed character trigrams, not trained); what Privilege does with the vector is UNVERIFIED. Enter the encoder&apos;s host:port in the console&apos;s field yourself <SourceTag swagger /> - this lab never writes it for you.</p>
           </div>
           <div>
             <h3 className="panel__sub">Validation</h3>

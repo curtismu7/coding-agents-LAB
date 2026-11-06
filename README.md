@@ -94,7 +94,21 @@ Other variables: `VITE_PORT` (Vite dev server, default 7151, `npm run dev -w web
 
 ## Mock and live modes
 
-The header has a **Mock / Live** toggle on every page, and the banner and the mode chip show the same mode. Mock reads the table. Live spawns the real hook script for every evaluation and lets you type your own action. The Gateway down tab uses a real unreachable loopback port in Live and the same failure policy from the table in Mock.
+The header has a **Mock / Live / Real** toggle on every page, and the banner and the mode chip show the same mode. Mock reads the table. Live spawns the real hook script for every evaluation and lets you type your own action. Real sends the hook event to the tenant's live AI Gateway (Privilege AI Guard in the decision path; see the Settings file section). The Gateway down tab uses a real unreachable loopback port in Live and the same failure policy from the table in Mock.
+
+## The intent encoder (Triton) beside the lab
+
+The Privilege console's Coding Agents page carries an AIIntent signal: it sends the action's text to an **encoder endpoint** and reads back a vector. We measured the console probing the NVIDIA Triton inference-server wire (KServe v2: `/v2`, `/model_info`, `/get_worker_address`) against whatever endpoint is configured, so the lab ships a matching server. Run it from anywhere with Docker (OrbStack):
+
+```bash
+# triton-repo/ ships with this repo (the model repo: config.pbtxt + model.py)
+docker run -d --name triton-encoder -p 127.0.0.1:8597:8000 -p 127.0.0.1:8598:8001 \
+  -v <this-repo>/triton-repo:/models nvcr.io/nvidia/tritonserver:24.10-py3 \
+  tritonserver --model-repository=/models --strict-model-config=false
+# then, in the console's encoder field, enter:  local.ping-devops.com:8597
+```
+
+The model, `intent-encoder`, answers `POST /v2/models/intent-encoder/infer` with TEXT in and a 384-dim FP32 EMBEDDING out. **The model is a lab stand-in**: a deterministic hashed character-trigram vector, not a trained intent encoder — it proves the wire shape (KServe v2) without a GPU or a model download. What Privilege does with the vector is UNVERIFIED. The server publishes on loopback only; the `local.ping-devops.com` name resolves to 127.0.0.1 on this Mac. The lab itself never calls Triton, and no page text names the host (the safety rule reserves hosts in shipped text).
 
 ## Health, doctor and reset
 

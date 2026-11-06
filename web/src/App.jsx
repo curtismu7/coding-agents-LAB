@@ -18,7 +18,7 @@ export const TABS = [
 // The banner is never blank and never claims one mode before it knows: until the story answers it says both, honestly.
 const TAIL = "Every product claim is a Ping release claim, UNVERIFIED on our tenant (release 2026-11-02). The agents, the device identity and the actions stay simulated, and no agent configuration is written anywhere.";
 export const BANNER_UNKNOWN = `SIMULATED, MOCK, LIVE or REAL mode. ${TAIL}`;
-const PRESENTER_TALK = { agents: ["say-first", "managed"], evaluate: ["native", "secrets", "identity"], gateway: ["fail"], config: ["managed"], diagram: ["why-hook"] };
+const PRESENTER_TALK = { agents: ["say-first", "managed"], evaluate: ["native", "secrets", "identity"], gateway: ["fail"], config: ["managed", "triton"], diagram: ["why-hook"] };
 const MODE_KEY = "ca.mode";
 
 const tabFromHash = () => { const h = window.location.hash.replace("#", ""); return TABS.some((t) => t.id === h) ? h : "agents"; };

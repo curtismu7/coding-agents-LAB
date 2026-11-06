@@ -40,6 +40,14 @@ The challenge: a coding agent reads the repository, takes instructions from file
 
 Mock is a table. Live is real: a hook script reads the agent's JSON on stdin, posts it over loopback to this server and prints the agent's native answer, so you can type your own action and watch the whole chain. Still nothing leaves the machine.
 
+## Real enforcement
+
+Real mode sends the hook event out of this machine to the tenant's live AI Gateway, where Privilege's AI Guard is in the decision path. A credential in the prompt comes back redacted by the gateway's data-loss policy and the lab maps that to a deny; an outright policy block maps to a deny too; a clean answer allows. The mapping is lab-invented; the deny itself is the gateway's own. Expect roughly twenty seconds per call: the live gateway is slow.
+
+## The intent encoder (Triton) and how Privilege uses it
+
+The console's Coding Agents page also carries an AIIntent signal: Privilege resolves an intent for the action by sending its text to an encoder endpoint and reading back a vector. That endpoint speaks the NVIDIA Triton inference-server wire (KServe v2) - we measured the console probing /v2, /model_info and /get_worker_address against whatever endpoint is set. This lab ships one: a Triton server (nvcr.io/nvidia/tritonserver, CPU) beside the lab, with a model named intent-encoder whose POST /v2/models/intent-encoder/infer takes a TEXT input and returns a 384-dim EMBEDDING (the exact address is in the README - this page names no real host). The model itself is a lab stand-in - a deterministic hashed character-trigram vector, not a trained intent encoder - so the wire shape can be exercised without a GPU or a model download. What Privilege does with the vector (thresholds, which intents it distinguishes) is product behaviour we have not tested: UNVERIFIED.
+
 ## What is not proven
 
 None of the product behaviour here has been run on our tenant. The field names Enabled, FailClosed, Agents and Gateways come from the console schema of 2026-10-31, schema only. The detection rules, reason codes, the device certificate format and the per-agent shapes marked illustrative are the lab's own. Antigravity's documentation lists no machine-level managed path, which does not match the deck: confirm with Ping before presenting it.
