@@ -24,6 +24,13 @@ const MODE_KEY = "ca.mode";
 const tabFromHash = () => { const h = window.location.hash.replace("#", ""); return TABS.some((t) => t.id === h) ? h : "agents"; };
 const savedMode = () => { try { const m = window.localStorage.getItem(MODE_KEY); return m === "live" || m === "mock" || m === "real" ? m : null; } catch { return null; } };
 
+const THEME_KEY = "codingagents.theme";
+const THEMES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
+function initialTheme() {
+  try { const t = localStorage.getItem(THEME_KEY); if (t === "light" || t === "dark") return t; } catch { /* storage blocked */ }
+  return "auto";
+}
+
 export default function App() {
   const [vertical, setVertical] = useState("finance");
   const [story, setStory] = useState(null);
@@ -35,6 +42,13 @@ export default function App() {
   const [resetSignal, setResetSignal] = useState(0);
   const [resetMsg, setResetMsg] = useState("");
   const [realAvailable, setRealAvailable] = useState(false);
+  const [theme, setTheme] = useState(initialTheme);
+  const pickTheme = (next) => {
+    try { if (next === "auto") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next); } catch { /* not remembered */ }
+    setTheme(next);
+  };
+  // The picker only sets data-theme; the shared stylesheet does the rest ("auto" follows the system setting).
+  useEffect(() => { if (theme === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; }, [theme]);
   const tabsRef = useRef(null);
 
   useEffect(() => { getJson("/api/info").then((i) => { setModeState((m) => m || savedMode() || i.mode); setRealAvailable(i.realAvailable === true); }, () => setModeState((m) => m || savedMode() || "mock")); }, []);
@@ -98,6 +112,11 @@ export default function App() {
               <button type="button" aria-pressed={mode === "live"} onClick={() => setMode("live")} data-testid="mode-live">Live</button>
               <button type="button" aria-pressed={mode === "real"} disabled={!realAvailable} title={realAvailable ? "Real enforcement: the hook event is evaluated by the tenant's live AI Gateway" : "Real mode is not configured: set CODING_AGENTS_LAB_AIGATEWAY_URL (or CENTRAL_AGENT_A2A_URL) and its bearer in the shared settings file and restart the lab. The bearer is never shown."} onClick={() => setMode("real")} data-testid="mode-real">Real</button>
             </div>
+            <label className="shell-theme">Theme
+              <select value={theme} onChange={(e) => pickTheme(e.target.value)}>
+                {THEMES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+              </select>
+            </label>
             <span className="chip" data-testid="mode">Mode: {mode || "..."}{mode === "real" ? " (live AI Guard)" : mode === "live" ? " (local engine, loopback)" : mode === "mock" ? " (tables)" : ""}</span>
             {!presenter && (
               <label className="inline">Vertical{" "}
