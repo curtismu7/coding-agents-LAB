@@ -137,3 +137,18 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 /* Antigravity: a window with traffic dots, editor chrome */
 .skin-antigravity .term__bar { background: #22162b; }
 .skin-antigravity .promptmark { color: #c678dd; font-weight: 700; }
+
+/* The little agent window (AgentWindow): same chrome as the skins, plus a footer of controls. */
+.term__title { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.term__spacer { flex: 1; }
+.term__btn { background: transparent; color: var(--on-box); border: 1px solid var(--on-box); border-radius: 6px; padding: 1px 8px; font-size: 12px; cursor: pointer; }
+.term__json { margin: 0 0 8px; white-space: pre-wrap; }
+.term__json .cursor { animation: blink 1s steps(2) infinite; }
+@keyframes blink { to { visibility: hidden; } }
+.term__answer { border-top: 1px solid #3a4358; padding-top: 8px; }
+.term__answer .term__answerlabel { color: #a8b3cf; margin-bottom: 4px; }
+.term__answer pre { margin: 0; white-space: pre-wrap; }
+.term__foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; background: var(--surface); border-top: 2px solid var(--border); }
+.term__foot .muted { font-size: 12px; }
+.term__speed { font-size: 13px; }
+.term--compact { font-size: 12px; }

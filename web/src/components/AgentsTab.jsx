@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getJson } from "../api";
 import { ClaimTag, Json, StatusTag } from "./Bits";
+import AgentWindow from "./AgentWindow";
 import { visible } from "../safeText";
 
 const cell = (c) => (!c.event ? "no hook event" : c.canBlock && c.canAsk ? "deny or ask" : c.canBlock ? "deny" : "observe only");
@@ -65,6 +66,10 @@ export default function AgentsTab({ story }) {
             </div>
           </div>
         ) : <p className="field-error" data-testid="no-event">{agent.name} has no hook event for this kind of action, so a hook never sees it. This is a coverage gap: the endpoint sensor is what still finds it.</p>}
+
+        <h3 className="panel__sub">The agent window — {agent.name} running its hook</h3>
+        <p className="muted" data-testid="aw-note">A little {agent.name}: press its control and it types the event above into its hook, then shows the native answer in this chrome. The request and the answers come from the same engine as the Evaluate tab; this window is the look-and-feel rehearsal, not the product UI.</p>
+        <AgentWindow agent={agent} kind={kind} />
       </section>
 
       <section className="panel">
