@@ -105,10 +105,12 @@ The Privilege console's Coding Agents page carries an AIIntent signal: it sends 
 docker run -d --name triton-encoder -p 127.0.0.1:8597:8000 -p 127.0.0.1:8598:8001 \
   -v <this-repo>/triton-repo:/models nvcr.io/nvidia/tritonserver:24.10-py3 \
   tritonserver --model-repository=/models --strict-model-config=false
-# then, in the console's encoder field, enter:  local.ping-devops.com:8597
+# then, in the console's encoder field, enter the lab's own demo domain (the one the
+# shelf hands out - this README names no lab host by convention) with this port:
+#   <the lab domain>:8597
 ```
 
-The model, `intent-encoder`, answers `POST /v2/models/intent-encoder/infer` with TEXT in and a 384-dim FP32 EMBEDDING out. **The model is a lab stand-in**: a deterministic hashed character-trigram vector, not a trained intent encoder — it proves the wire shape (KServe v2) without a GPU or a model download. What Privilege does with the vector is UNVERIFIED. The server publishes on loopback only; the `local.ping-devops.com` name resolves to 127.0.0.1 on this Mac. The lab itself never calls Triton, and no page text names the host (the safety rule reserves hosts in shipped text).
+The model, `intent-encoder`, answers `POST /v2/models/intent-encoder/infer` with TEXT in and a 384-dim FP32 EMBEDDING out. **The model is a lab stand-in**: a deterministic hashed character-trigram vector, not a trained intent encoder — it proves the wire shape (KServe v2) without a GPU or a model download. What Privilege does with the vector is UNVERIFIED. The server publishes on loopback only; the lab's domain (the one the shelf hands out) resolves to 127.0.0.1 on this Mac. The lab itself never calls Triton, and no page text names the host (the safety rule reserves hosts in shipped text).
 
 ## Health, doctor and reset
 
