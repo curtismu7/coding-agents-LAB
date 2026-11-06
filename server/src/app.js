@@ -19,6 +19,7 @@ import { DIAGRAM_NAMES, buildDiagram } from './diagramData.js';
 import { InputError } from './errors.js';
 import { defaultConfig, generateAll, validateConfig } from './codingConfig.js';
 import { MOCK_TABLE } from './mockTable.js';
+import { shelfInfo } from './shelfLink.js';
 import { maskDeep, maskText } from './mask.js';
 import { buildMethodTable, charsetProblem, isPageAddress, methodNotAllowed } from './shared/hygiene.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
@@ -41,7 +42,7 @@ const METHODS = buildMethodTable(ROUTES);
 const fail = (res, status, code, headers = {}) => res.set(headers).status(status).json({ error: code });
 const CONFIG = process.env.CUSTOMER_CONFIG || path.resolve(HERE, '../../customer.config.json');
 
-export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE, webDist = WEB_DIST } = {}) {
+export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE, webDist = WEB_DIST, env = process.env } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.use(hostCheck);
@@ -68,6 +69,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   // and last 4000 characters of a field. Everything else is small.
   api.use((req, res, next) => express.json({ limit: req.path === '/hook' ? '256kb' : '16kb' })(req, res, next));
   api.use('/health', health.router);
+  api.get('/shelf', (_req, res) => { labData(res); res.json(shelfInfo(env)); });
   const verticalOf = (req) => verticalFrom(req.body?.vertical ?? req.query.vertical ?? req.headers['x-lab-vertical']);
   const castFor = (req) => loadCast(configFile, verticalOf(req));
   const noStore = (res) => res.set('Cache-Control', 'no-store');
