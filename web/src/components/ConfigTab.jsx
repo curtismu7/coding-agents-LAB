@@ -39,15 +39,17 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
     <div className="stack">
       <section className="panel">
         <h2 className="panel__title">CodingAgent config <ClaimTag label={story.claimLabel} /></h2>
-        <p className="muted" data-testid="config-source">Field names Enabled, FailClosed, Agents and Gateways: <b>{story.swaggerNames}</b>. Everything else here (validation limits, the generated text, "found on the device") is lab-invented.</p>
+        <p className="muted" data-testid="config-source">Field names Enabled, FailClosed, Agents and Gateways: <b>{story.swaggerNames}</b>. Everything else here (validation limits, the generated text, &quot;found on the device&quot;) is lab-invented.</p>
         <div className="cols">
           <div className="form">
-            <label className="check"><input type="checkbox" checked={config.Enabled} onChange={(e) => propose({ ...config, Enabled: e.target.checked })} data-testid="cfg-enabled" /> Enabled <SourceTag swagger /></label>
+            <h3 className="panel__sub">Enforcement</h3>
+            <label className="check"><input type="checkbox" checked={config.Enabled} onChange={(e) => propose({ ...config, Enabled: e.target.checked })} data-testid="cfg-enabled" /> Evaluate coding-agent hooks <SourceTag swagger /></label>
             <p className="muted">{story.configFields[0].note} The product default is OFF until a tenant asks; this lab opens it ON so the demo has something to show.</p>
-            <label className="check"><input type="checkbox" checked={config.FailClosed} onChange={(e) => propose({ ...config, FailClosed: e.target.checked })} data-testid="cfg-failclosed" /> FailClosed <SourceTag swagger /></label>
+            <label className="check"><input type="checkbox" checked={config.FailClosed} onChange={(e) => propose({ ...config, FailClosed: e.target.checked })} data-testid="cfg-failclosed" /> Refuse when no AI Guard service answers <SourceTag swagger /></label>
             <p className="muted">{story.configFields[1].note}</p>
+            <h3 className="panel__sub">Agents</h3>
             <fieldset className="fieldset">
-              <legend>Agents <SourceTag swagger /></legend>
+              <legend>Only the selected agents have hooks installed <SourceTag swagger /></legend>
               <div className="seg" role="group" aria-label="Agents scope">
                 <button type="button" aria-pressed={!named} onClick={() => setScope(true)} data-testid="cfg-scope-all">Every agent found on the device (empty)</button>
                 <button type="button" aria-pressed={named} onClick={() => setScope(false)} data-testid="cfg-scope-named">Only the agents named below</button>
@@ -55,10 +57,11 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
               {named && story.agents.map((a) => <label key={a.id} className="check"><input type="checkbox" checked={!!config.Agents[a.id]} onChange={(e) => setAgent(a.id, e.target.checked)} data-testid={`cfg-agent-${a.id}`} /> {a.name}</label>)}
               <p className="muted">{story.configFields[2].note}</p>
             </fieldset>
+            <h3 className="panel__sub">AI Guard Service</h3>
             <label>Gateways, one per line (tried in order) <SourceTag swagger />
               <textarea rows={3} value={gwText} onChange={(e) => applyGateways(e.target.value)} data-testid="cfg-gateways" aria-describedby="gw-help" />
             </label>
-            <p className="muted" id="gw-help">https, an .example or .invalid host, at most 5. These are the endpoints the generated text would carry; the lab&apos;s own hook only ever reaches loopback.</p>
+            <p className="muted" id="gw-help">https, an .example or .invalid host, at most 5. These are the endpoints the generated text would carry; the lab&apos;s own hook only ever reaches loopback. In Real mode the ONE endpoint the hook event actually leaves for is set by the operator in the shared settings file (CODING_AGENTS_LAB_AIGATEWAY_URL), not here.</p>
             <p className="muted">{story.configFields.slice(4).map((f) => f.name).join(", ")}: <SourceTag swagger /> carried as in the schema, not interpreted by the lab.</p>
           </div>
           <div>

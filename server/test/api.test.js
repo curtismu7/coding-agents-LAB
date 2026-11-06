@@ -4,6 +4,20 @@ import { installNetguard } from '../src/netguard.js';
 import { parseTraceparent } from '../src/trace.js';
 import { AGENT_IDS } from '../src/agents.js';
 import { post, rawHttp, withServer } from './helpers.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+// A server whose Real config is OFF even on a machine whose shared settings file has the keys: an empty
+// STANDALONE_ENV isolates the test from the author's machine (the aiGuardConfig reads it strictly).
+async function withInfoIsolated(fn) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cag-info-'));
+  const empty = path.join(dir, '.env');
+  fs.writeFileSync(empty, '');
+  const saved = process.env.STANDALONE_ENV;
+  process.env.STANDALONE_ENV = empty;
+  try { await withServer(fn); } finally { if (saved === undefined) delete process.env.STANDALONE_ENV; else process.env.STANDALONE_ENV = saved; }
+}
 
 const aws = ['AKIA', 'MOCKMOCKMOCKMOCK'].join('');
 
@@ -38,8 +52,12 @@ test('every write is same-origin; Reset confirms', async () => {
 });
 
 test('GET /api/info and /api/story: simulated, release 2026-11-02, UNVERIFIED, every vertical, no unfilled token, all six agents', async () => {
-  await withServer(async (url) => {
-    assert.deepEqual(await (await fetch(`${url}/api/info`)).json(), { mode: 'mock', modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true });
+  await withInfoIsolated(async (url) => {
+    const info = await (await fetch(`${url}/api/info`)).json();
+    const { realReason, ...infoRest } = info;
+    assert.deepEqual(infoRest, { mode: 'mock', modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true, realAvailable: false });
+    assert.ok(typeof realReason === 'string' && realReason.includes('CODING_AGENTS_LAB_AIGATEWAY_URL'), 'the how-to names the key');
+    assert.ok(!/Bearer\s+\S/.test(realReason), 'no value is shown');
     for (const v of ['finance', 'health', 'retail']) {
       const j = await (await fetch(`${url}/api/story?vertical=${v}`)).json();
       assert.equal(j.vertical, v);

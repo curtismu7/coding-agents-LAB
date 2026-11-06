@@ -8,6 +8,7 @@ export const INTRO = 'A coding agent reads the repository, follows instructions 
 export const BANNER = {
   mock: `SIMULATED, MOCK mode: in-process tables. Every product claim is a ${CLAIM_LABEL} (release ${RELEASE}). Nothing here calls a real gateway, identity provider or tenant, and no agent configuration is written anywhere.`,
   live: `SIMULATED, LIVE mode: a local real engine (a real hook script reads the agent's JSON on stdin, posts it over loopback to this server and prints the native answer), loopback only, zero outbound network. Every product claim is a ${CLAIM_LABEL} (release ${RELEASE}). No real gateway, tenant or agent configuration is touched.`,
+  real: `REAL ENFORCEMENT, SIMULATED AGENTS: the hook event leaves this machine to the tenant's ONE configured AI Gateway (Privilege AI Guard in the decision path) and the answer is the gateway's own deny or allow; the agents, the device identity and the actions stay simulated. No agent configuration is written anywhere. Every product claim is a ${CLAIM_LABEL} (release ${RELEASE}).`,
 };
 
 export const CLAIMS = [

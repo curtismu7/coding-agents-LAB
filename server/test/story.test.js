@@ -18,6 +18,7 @@ test('every banner and the intro say the claims are UNVERIFIED on our tenant, an
   const s = buildStory(DEFAULT_CAST, 'finance');
   assert.equal(s.claimLabel, CLAIM_LABEL);
   assert.match(s.banner.mock, /UNVERIFIED on our tenant/); assert.match(s.banner.live, /UNVERIFIED on our tenant/);
+  assert.match(s.banner.real, /UNVERIFIED on our tenant/); assert.match(s.banner.real, /ONE configured AI Gateway/);
   assert.deepEqual(s.claims.map((c) => c.id), ['hooks', 'same-policy', 'native', 'secrets', 'identity', 'fail', 'why-hook']);
 });
 

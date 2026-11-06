@@ -16,13 +16,13 @@ export const TABS = [
   { id: "talk", label: "Talk track" },
 ];
 // The banner is never blank and never claims one mode before it knows: until the story answers it says both, honestly.
-const TAIL = "Every product claim is a Ping release claim, UNVERIFIED on our tenant (release 2026-11-02). Nothing here calls a real gateway, identity provider or tenant, and no agent configuration is written anywhere.";
-export const BANNER_UNKNOWN = `SIMULATED, MOCK or LIVE mode (loopback only, no outbound network). ${TAIL}`;
+const TAIL = "Every product claim is a Ping release claim, UNVERIFIED on our tenant (release 2026-11-02). The agents, the device identity and the actions stay simulated, and no agent configuration is written anywhere.";
+export const BANNER_UNKNOWN = `SIMULATED, MOCK, LIVE or REAL mode. ${TAIL}`;
 const PRESENTER_TALK = { agents: ["say-first", "managed"], evaluate: ["native", "secrets", "identity"], gateway: ["fail"], config: ["managed"], diagram: ["why-hook"] };
 const MODE_KEY = "ca.mode";
 
 const tabFromHash = () => { const h = window.location.hash.replace("#", ""); return TABS.some((t) => t.id === h) ? h : "agents"; };
-const savedMode = () => { try { const m = window.localStorage.getItem(MODE_KEY); return m === "live" || m === "mock" ? m : null; } catch { return null; } };
+const savedMode = () => { try { const m = window.localStorage.getItem(MODE_KEY); return m === "live" || m === "mock" || m === "real" ? m : null; } catch { return null; } };
 
 export default function App() {
   const [vertical, setVertical] = useState("finance");
@@ -34,9 +34,10 @@ export default function App() {
   const [presenter, setPresenter] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const [resetMsg, setResetMsg] = useState("");
+  const [realAvailable, setRealAvailable] = useState(false);
   const tabsRef = useRef(null);
 
-  useEffect(() => { getJson("/api/info").then((i) => setModeState((m) => m || savedMode() || i.mode), () => setModeState((m) => m || savedMode() || "mock")); }, []);
+  useEffect(() => { getJson("/api/info").then((i) => { setModeState((m) => m || savedMode() || i.mode); setRealAvailable(i.realAvailable === true); }, () => setModeState((m) => m || savedMode() || "mock")); }, []);
   useEffect(() => {
     getJson(`/api/story?vertical=${encodeURIComponent(vertical)}`).then((j) => { setStory(j); setConfig((c) => c || structuredClone(j.defaultConfig)); setError(null); }, (e) => setError(e.message));
   }, [vertical]);
@@ -85,7 +86,7 @@ export default function App() {
   return (
     <div className={`app${presenter ? " app--presenter" : ""}`}>
       <header>
-        <p className="banner" role="status" data-state={mode === "live" ? "live" : "mock"} data-testid="banner">{banner}</p>
+        <p className="banner" role="status" data-state={mode === "live" || mode === "real" ? "live" : "mock"} data-testid="banner">{banner}</p>
         <div className="head">
           <div>
             <h1 className="head__title">Coding Agents LAB</h1>
@@ -95,8 +96,9 @@ export default function App() {
             <div className="seg" role="group" aria-label="Mode">
               <button type="button" aria-pressed={mode === "mock"} onClick={() => setMode("mock")} data-testid="mode-mock">Mock</button>
               <button type="button" aria-pressed={mode === "live"} onClick={() => setMode("live")} data-testid="mode-live">Live</button>
+              <button type="button" aria-pressed={mode === "real"} disabled={!realAvailable} title={realAvailable ? "Real enforcement: the hook event is evaluated by the tenant's live AI Gateway" : "Real mode is not configured: set CODING_AGENTS_LAB_AIGATEWAY_URL (or CENTRAL_AGENT_A2A_URL) and its bearer in the shared settings file and restart the lab. The bearer is never shown."} onClick={() => setMode("real")} data-testid="mode-real">Real</button>
             </div>
-            <span className="chip" data-testid="mode">Mode: {mode || "..."}{mode === "live" ? " (local engine, loopback)" : mode === "mock" ? " (tables)" : ""}</span>
+            <span className="chip" data-testid="mode">Mode: {mode || "..."}{mode === "real" ? " (live AI Guard)" : mode === "live" ? " (local engine, loopback)" : mode === "mock" ? " (tables)" : ""}</span>
             {!presenter && (
               <label className="inline">Vertical{" "}
                 <select value={vertical} onChange={(e) => setVertical(e.target.value)} data-testid="vertical">

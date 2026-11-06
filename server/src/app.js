@@ -25,6 +25,7 @@ import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { newTrace } from './trace.js';
 import { evaluateAction, handleHook } from './service.js';
 import { SOURCES } from './sources.js';
+import { aiGuardConfig, realNotConfiguredReason } from './aiguard.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
@@ -77,7 +78,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.get('/diagram', (req, res) => { labData(res); res.json(buildDiagram(castFor(req), DIAGRAM_NAMES.includes(req.query.name) ? req.query.name : 'hook-flow')); });
   // The documentation each "documented" shape was read from: plain text for a presenter to copy. The lab never fetches them.
   api.get('/sources', (_req, res) => { labData(res); res.json(SOURCES); });
-  api.get('/info', (_req, res) => { labData(res); res.json({ mode: defaultMode(), modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true }); });
+  api.get('/info', (_req, res) => { labData(res); res.json({ mode: defaultMode(), modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true, realAvailable: aiGuardConfig().configured, realReason: realNotConfiguredReason() }); });
 
   // The workspace rule: an id that is not lowercase letters, digits and hyphens, or that the masker takes for a credential, is refused here,
   // before any state exists for it, and is never echoed.
