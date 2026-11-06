@@ -39,7 +39,7 @@ test('every write is same-origin; Reset confirms', async () => {
 
 test('GET /api/info and /api/story: simulated, release 2026-11-02, UNVERIFIED, every vertical, no unfilled token, all six agents', async () => {
   await withServer(async (url) => {
-    assert.deepEqual(await (await fetch(`${url}/api/info`)).json(), { mode: 'mock', modes: ['mock', 'live'], simulated: true, release: '2026-11-02', unverified: true });
+    assert.deepEqual(await (await fetch(`${url}/api/info`)).json(), { mode: 'mock', modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true });
     for (const v of ['finance', 'health', 'retail']) {
       const j = await (await fetch(`${url}/api/story?vertical=${v}`)).json();
       assert.equal(j.vertical, v);

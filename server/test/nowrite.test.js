@@ -30,7 +30,11 @@ test('the only home-directory touch in the server is reading the optional shared
   const t = fs.readFileSync(path.join(root, 'server/src/settings.js'), 'utf8');
   assert.equal((t.match(/homedir\(\)/g) || []).length, 1);
   assert.ok(t.includes('readFileSync(') && t.includes('parseEnv('));
-  for (const f of files('server/src')) if (!f.endsWith('settings.js')) assert.ok(!/homedir|process\.env\.HOME/.test(fs.readFileSync(path.join(root, f), 'utf8')), f);
+  // sharedEnv.js reads the same shared file for the Real-mode keys (same rule: values never returned or logged).
+  const s = fs.readFileSync(path.join(root, 'server/src/sharedEnv.js'), 'utf8');
+  assert.equal((s.match(/homedir\(\)/g) || []).length, 1);
+  assert.ok(s.includes('readFileSync(') && s.includes('parseEnv('));
+  for (const f of files('server/src')) if (!f.endsWith('settings.js') && !f.endsWith('sharedEnv.js')) assert.ok(!/homedir|process\.env\.HOME/.test(fs.readFileSync(path.join(root, f), 'utf8')), f);
 });
 
 test('the Web UI offers the generated text as a download of text, and posts nothing that could install it', () => {

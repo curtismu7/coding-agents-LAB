@@ -13,6 +13,7 @@ services:
       PORT: "7150"
       CALAB_BIND: 0.0.0.0
       CODING_AGENTS_LAB_MODE: ${CODING_AGENTS_LAB_MODE:-mock}
+      LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-}
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]

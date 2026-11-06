@@ -4,19 +4,19 @@ import { allPassed, runChecks } from './doctor.js';
 import { assertBindAllowed, bindHost, resolvePort } from './safety.js';
 import { modeFrom } from './config.js';
 import { applySharedSettings } from './settings.js';
+import { aiGuardConfig, netguardAllowlist } from './aiguard.js';
 
-installNetguard(); // before anything else can open a socket
+applySharedSettings(); // the one shared settings file, before the allowlist is computed from it
 
-// The one shared settings file (rulebook): ~/Development/.env, or STANDALONE_ENV. Optional; only this lab's own key is taken; never printed.
-applySharedSettings();
+installNetguard(netguardAllowlist()); // the Real gateway hostname is the ONE allowed outbound; everything else is refused
 
 const checks = await runChecks();
 if (!allPassed(checks)) {
   for (const c of checks.filter((x) => x.level === 'fail')) console.error(`[coding-agents-lab] refusing to start: ${c.id}: ${c.detail}`);
   process.exit(1);
 }
-const mode = modeFrom(process.env); // refuses anything but mock or live
+const mode = modeFrom(process.env); // refuses anything but mock, live or real
 const host = assertBindAllowed(bindHost(), process.env);
 const { url } = await startHttpServer({ port: resolvePort(), host, app: createApp() });
-console.log(`[coding-agents-lab] simulated lab at ${url} (opens in ${mode} mode; loopback, no outbound network)`);
+console.log(`[coding-agents-lab] simulated lab at ${url} (opens in ${mode} mode; loopback${mode === 'real' ? `, real AI Guard at ${aiGuardConfig().url.replace(/\/jsonrpc$/i, '')}` : ', no outbound network'})`);
 console.log(`[coding-agents-lab] health: ${url}api/health`);

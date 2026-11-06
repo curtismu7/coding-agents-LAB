@@ -77,7 +77,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.get('/diagram', (req, res) => { labData(res); res.json(buildDiagram(castFor(req), DIAGRAM_NAMES.includes(req.query.name) ? req.query.name : 'hook-flow')); });
   // The documentation each "documented" shape was read from: plain text for a presenter to copy. The lab never fetches them.
   api.get('/sources', (_req, res) => { labData(res); res.json(SOURCES); });
-  api.get('/info', (_req, res) => { labData(res); res.json({ mode: defaultMode(), modes: ['mock', 'live'], simulated: true, release: '2026-11-02', unverified: true }); });
+  api.get('/info', (_req, res) => { labData(res); res.json({ mode: defaultMode(), modes: ['mock', 'live', 'real'], simulated: true, release: '2026-11-02', unverified: true }); });
 
   // The workspace rule: an id that is not lowercase letters, digits and hyphens, or that the masker takes for a credential, is refused here,
   // before any state exists for it, and is never echoed.
@@ -102,7 +102,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
     if (!objectBody(req)) return res.status(400).json({ error: 'bad_request' });
     try {
       const mode = modeOf(req.body.mode);
-      if (!mode) return res.status(400).json({ error: 'bad_mode', detail: 'mode must be mock or live' });
+      if (!mode) return res.status(400).json({ error: 'bad_mode', detail: 'mode must be mock, live or real' });
       const v = req.body.config === undefined ? validateConfig(defaultConfig(castFor(req))) : validateConfig(req.body.config);
       if (!v.ok) return res.status(400).json({ error: 'bad_config', detail: v.errors.map((e) => `${e.field}: ${e.message}`).join('; ') });
       if (typeof req.body.agent !== 'string') return res.status(400).json({ error: 'unknown_agent', detail: 'agent is required' });

@@ -6,9 +6,11 @@ import { InputError } from './errors.js';
 import { DEAD_GATEWAY, runHookScript } from './live.js';
 import { SCENARIOS } from './data.js';
 import { maskDeep, maskText } from './mask.js';
-import { buildHops, ctxFor, dialogFor, gatewayFromPayload, identityFrom, mockCertSubject, scenarioCall, summarize } from './evaluation.js';
+import { buildHops, ctxFor, dialogFor, gatewayEvaluate, gatewayFromPayload, identityFrom, mockCertSubject, scenarioCall, summarize } from './evaluation.js';
 import { MAX_SUBJECT } from './identity.js';
 import { formatTraceparent, newTrace } from './trace.js';
+import { aiGuardConfig, realNotConfiguredReason, sendToAiGuard } from './aiguard.js';
+import { buildRealHops } from './evaluation.js';
 
 export const MAX_CUSTOM = 2000;
 
@@ -95,6 +97,36 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
     native = r.native; outcome = r.gateway.outcome;
     evaluation = { decision: r.gateway.decision, reasonCode: r.gateway.reasonCode, reason: r.gateway.reason, findings: r.gateway.findings || [], decidedBy: r.gateway.decidedBy };
     hops = buildHops({ trace, agent, hookRequest: shownRequest, native, evaluation, down: false, mode });
+  } else if (mode === 'real') {
+    // Real mode: the hook event goes to the tenant's live AI Gateway (Privilege AI Guard in the decision path).
+    const cfg = aiGuardConfig();
+    if (!cfg.configured) throw new InputError('real_not_configured', realNotConfiguredReason());
+    const traceparent = formatTraceparent(trace.traceId, trace.span());
+    let sent; let hops;
+    try {
+      sent = await sendToAiGuard({ call, cfg, traceparent });
+    } catch {
+      // The gateway could not be reached: the same failure policy as a dead tunnel.
+      const u = unreachableOutcome(agent, call.kind, !!config.FailClosed);
+      outcome = { native: u.native, covered: true, refused: u.refused };
+      native = respond(agent, call.kind, u.native, u.reason);
+      evaluation = { decision: u.refused ? 'deny' : 'allow', reasonCode: u.reasonCode, reason: u.reason, findings: [], decidedBy: 'the hook\'s failure policy (the AI Guard service did not answer)' };
+      gap = { agent, kind: call.kind, identity: identity.identity, device: identity.device, failClosed: !!config.FailClosed, outcome: u.refused ? 'refused' : 'proceeded', reasonCode: u.reasonCode, reason: u.reason, summary: summarize(call).slice(0, 100) };
+      workspaces.addGap(ws, { ...gap, scenario: scenarioId, mode });
+      hops = buildHops({ trace, agent, hookRequest: shownRequest, native, evaluation, down: true, mode: 'real' });
+      const dialog2 = dialogFor({ agent, call: shown ?? call, outcome, reason: evaluation.reason });
+      return { ...base, covered: true, installed: true, hookRequest: shownRequest, evaluation, outcome, native, dialog: dialog2, gap, hops, real: { attempted: true, reached: false } };
+    }
+    const m = sent.mapped;
+    if (!m) throw new InputError('real_unmapped', 'the AI Guard service answered in a shape this lab does not map (see the raw answer in the hops)');
+    // The lab's own rules still run, as a comparison layer, and are shown beside the real answer.
+    const labRules = gatewayEvaluate({ agent, call, cast });
+    outcome = nativeOutcome(agent, call.kind, m.decision);
+    native = respond(agent, call.kind, outcome.native, `${m.decidedBy}. ${reasonOf(m.reasonCode, sent)}`);
+    evaluation = { decision: m.decision, reasonCode: m.reasonCode, reason: `${m.decidedBy}. ${reasonOf(m.reasonCode, sent)}`, findings: labRules.evaluation.findings.map((f) => ({ ...f, labOnly: true })), decidedBy: m.decidedBy, labRules: labRules.evaluation.decision };
+    workspaces.addAudit(ws, { agent, kind: call.kind, identity: identity.identity, device: identity.device, decision: m.decision, reasonCode: m.reasonCode, nativeDecision: outcome.native, summary: summarize(call), traceId: trace.traceId, mode });
+    hops = buildRealHops({ trace, agent, hookRequest: shownRequest, native, sent, evaluation, mode: 'real' });
+    return { ...base, covered: true, installed: true, hookRequest: shownRequest, evaluation, outcome, native, dialog: dialogFor({ agent, call: shown ?? call, outcome, reason: evaluation.reason }), gap: null, hops, real: { attempted: true, reached: true } };
   } else {
     const row = table?.[vertical]?.[scenarioId]?.[agent];
     if (!row || !row.covered) throw new InputError('no_table_row', 'the mock table has no row for this action');
@@ -112,4 +144,13 @@ export async function evaluateAction(args) {
   const r = await evaluateInner(args);
   return args.scenario === undefined && args.custom !== undefined ? maskDeep(r) : r;
 }
+
+// The human reason for a mapped real answer. The raw gateway text is never quoted (it may echo parts of the event).
+function reasonOf(reasonCode, sent) {
+  if (reasonCode === 'DENY-AIGUARD-BLOCKED') return 'The AI Guard service blocked the request before it reached the model.';
+  if (reasonCode === 'DENY-AIGUARD-REDACTED') return 'The AI Guard service stopped a credential: the text was redacted before the model saw it.';
+  if (reasonCode === 'ALLOW-AIGUARD-ERROR') return 'The gateway answered with a non-blocking error; the action proceeds.';
+  return 'The AI Guard service evaluated the request and raised no block.';
+}
+
 export { SCENARIOS };
