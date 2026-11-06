@@ -10,7 +10,7 @@ export const rawStory = () => ({ title: TITLE, intro: INTRO, banner: BANNER, cla
 const SAMPLE = { prompt: 'secret-prompt', shell: 'destructive-shell', file_read: 'sensitive-read', mcp_call: 'mcp-unlisted', tool_result: 'hidden-instructions' };
 
 // One agent as the Agents tab shows it: paths, events, and per kind the request the hook gets and the native answers it can print.
-function agentView(a, cast) {
+function agentView(a, cast, scenarios) {
   const channels = KINDS.map((kind) => {
     const ch = a.channels[kind];
     const row = { kind, label: KIND_LABEL[kind], event: ch.event, canBlock: ch.canBlock, canAsk: ch.canAsk, status: ch.status, documented: ch.documented, illustrative: ch.illustrative, caveat: ch.caveat };
@@ -21,7 +21,16 @@ function agentView(a, cast) {
     if (ch.canBlock) responses.deny = respond(a.id, kind, 'deny', 'Blocked by policy (example reason).');
     return { ...row, request: nativeRequest(a.id, call, ctxFor(cast)), responses };
   });
-  return { id: a.id, name: a.name, vendor: a.vendor, managed: a.managed, managedNote: a.managedNote, configCaveat: a.configCaveat, sources: a.sources, channels, dialog: a.dialog, skin: a.skin };
+  // Per scenario: this agent's native hook request for that action, so the agent window can run
+  // a real scripted prompt (the same ones the Evaluate tab drives) instead of one per kind.
+  const scenarioRequests = scenarios
+    .map((sc) => {
+      if (!a.channels[sc.kind]?.event) return null;
+      const { call } = scenarioCall(cast, sc.id);
+      return { id: sc.id, title: sc.title, kind: sc.kind, expected: sc.expected, request: nativeRequest(a.id, call, ctxFor(cast)) };
+    })
+    .filter(Boolean);
+  return { id: a.id, name: a.name, vendor: a.vendor, managed: a.managed, managedNote: a.managedNote, configCaveat: a.configCaveat, sources: a.sources, channels, dialog: a.dialog, skin: a.skin, scenarioRequests };
 }
 
 // The story with the cast filled in. The mock credential in the prompt scenario is built at run time (data.js).
@@ -33,7 +42,7 @@ export function buildStory(cast, vertical) {
     fieldSource: FIELD_SOURCE, fieldSourceLab: FIELD_SOURCE_LAB, swaggerNames: SWAGGER_NAMES, configFields: CONFIG_FIELDS,
     defaultConfig: defaultConfig(cast), mcpAllow: mcpAllowFor(cast),
     scenarios: SCENARIOS.map((sc) => { const x = scenarioCall(cast, sc.id); return { id: sc.id, title: x.scenario.title, kind: sc.kind, expected: sc.expected, lesson: fillDeep(sc.lesson, cast), call: x.call }; }),
-    agents: AGENTS.map((a) => agentView(a, cast)), kinds: KINDS, kindLabel: KIND_LABEL,
+    agents: AGENTS.map((a) => agentView(a, cast, SCENARIOS.map((sc) => ({ id: sc.id, title: sc.title, kind: sc.kind, expected: sc.expected })))), kinds: KINDS, kindLabel: KIND_LABEL,
     certSubject: subject, identity: identityFrom(subject),
     talkTrack: s.talkTrack, cast, vertical, verticals: Object.keys(VERTICALS),
   };
