@@ -13,7 +13,7 @@ services:
       PORT: "7150"
       CALAB_BIND: 0.0.0.0
       CODING_AGENTS_LAB_MODE: ${CODING_AGENTS_LAB_MODE:-mock}
-      LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-}
+      LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-coding-agents-lab.local.ping-devops.com}
     # Real mode needs the owner-set AI Gateway endpoint + bearer (shared settings file, rule 19/94);
     # host-gateway is only reachable names for the netguard's one allowed outbound.
     env_file:
