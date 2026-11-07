@@ -107,36 +107,61 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 /* ---- Agent "skin": each dialog dressed as the real client's chrome. Light/dark safe:
    skins set only chrome colours (bars, borders, terminal panels); text stays var(--text) on
    var(--surface) or a fixed near-black terminal background with its own light text. ------- */
+:root {
+  /* One definition per skin colour, identical in light and dark (the terminal body is dark in both themes). */
+  --skin-term-bg: #14181f;
+  --skin-term-text: #e6e6e6;
+  --skin-term-rule: #3a4358;
+  --skin-term-ok: #1a7f37;
+  --skin-term-warn: #b98700;
+  --skin-term-label: #a8b3cf;
+  --skin-claude-bar: #1f1d1a;
+  --skin-claude-prompt: #d97757;
+  --skin-cursor-bar: #171a21;
+  --skin-cursor-card: #1d2230;
+  --skin-cursor-border: #3a4358;
+  --skin-cursor-title: #a8b3cf;
+  --skin-codex-bar: #10231b;
+  --skin-codex-prompt: #10a37f;
+  --skin-gemini-bar: #10233f;
+  --skin-gemini-prompt: #5b9dff;
+  --skin-copilot-bar: #202033;
+  --skin-copilot-card: #252540;
+  --skin-copilot-border: #44446a;
+  --skin-copilot-title: #b3b3d9;
+  --skin-antigravity-bar: #22162b;
+  --skin-antigravity-prompt: #c678dd; /* purple kept on purpose: owner-approved exception to the no-purple rule */
+}
 .term { border: 2px solid var(--border); border-radius: 10px; overflow: hidden; font-family: var(--font-mono); font-size: 13px; }
 .term__bar { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-weight: 700; background: var(--box-dark); color: var(--on-box); border-bottom: 2px solid var(--border); }
 .term__dots { display: inline-flex; gap: 5px; }
 .term__dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); display: inline-block; }
-.term__body { background: #14181f; color: #e6e6e6; padding: 10px 12px; overflow-wrap: anywhere; }
+.term__body { background: var(--skin-term-bg); color: var(--skin-term-text); padding: 10px 12px; overflow-wrap: anywhere; }
 .term__body .accent { font-weight: 700; }
-.term--denied .term__body { border-left: 6px solid #d20e0f; }
-.term--asks .term__body { border-left: 6px solid #b98700; }
-.term--proceeds .term__body { border-left: 6px solid #1a7f37; }
+.term--denied .term__body { border-left: 6px solid var(--accent); }
+.term--asks .term__body { border-left: 6px solid var(--skin-term-warn); }
+.term--proceeds .term__body { border-left: 6px solid var(--skin-term-ok); }
 
 /* Claude Code: a bare terminal session, its orange ● prompt marker */
-.skin-claude .term__bar { background: #1f1d1a; }
-.skin-claude .term__body .promptmark { color: #d97757; font-weight: 700; }
+.skin-claude .term__bar { background: var(--skin-claude-bar); }
+.skin-claude .term__body .promptmark { color: var(--skin-claude-prompt); font-weight: 700; }
 /* Cursor: an IDE notification card inside the terminal body */
-.skin-cursor .term__bar { background: #171a21; }
-.skin-cursor .card { background: #1d2230; border: 1px solid #3a4358; border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
-.skin-cursor .card__title { color: #a8b3cf; font-weight: 700; }
+.skin-cursor .term__bar { background: var(--skin-cursor-bar); }
+.skin-cursor .card { background: var(--skin-cursor-card); border: 1px solid var(--skin-cursor-border); border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
+.skin-cursor .card__title { color: var(--skin-cursor-title); font-weight: 700; }
 /* Codex: OpenAI-ish terminal, minimal */
-.skin-codex .term__bar { background: #10231b; }
-.skin-codex .promptmark { color: #10a37f; font-weight: 700; }
+.skin-codex .term__bar { background: var(--skin-codex-bar); }
+.skin-codex .promptmark { color: var(--skin-codex-prompt); font-weight: 700; }
 /* Gemini CLI: the blue gradient banner look, flat here */
-.skin-gemini .term__bar { background: #10233f; }
-.skin-gemini .promptmark { color: #5b9dff; font-weight: 700; }
+.skin-gemini .term__bar { background: var(--skin-gemini-bar); }
+.skin-gemini .promptmark { color: var(--skin-gemini-prompt); font-weight: 700; }
 /* Copilot: a VS Code-style notification toast */
-.skin-copilot .term__bar { background: #202033; }
-.skin-copilot .card { background: #252540; border: 1px solid #44446a; border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
-.skin-copilot .card__title { color: #b3b3d9; font-weight: 700; }
+.skin-copilot .term__bar { background: var(--skin-copilot-bar); }
+.skin-copilot .card { background: var(--skin-copilot-card); border: 1px solid var(--skin-copilot-border); border-radius: 8px; padding: 8px 10px; margin: 4px 0; }
+.skin-copilot .card__title { color: var(--skin-copilot-title); font-weight: 700; }
 /* Antigravity: a window with traffic dots, editor chrome */
-.skin-antigravity .term__bar { background: #22162b; }
-.skin-antigravity .promptmark { color: #c678dd; font-weight: 700; }
+.skin-antigravity .term__bar { background: var(--skin-antigravity-bar); }
+.skin-antigravity .promptmark { color: var(--skin-antigravity-prompt); font-weight: 700; }
 
 /* The little agent window (AgentWindow): same chrome as the skins, plus a footer of controls. */
 .term__title { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -150,8 +175,8 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .term__json { margin: 0 0 8px; white-space: pre-wrap; }
 .term__json .cursor { animation: blink 1s steps(2) infinite; }
 @keyframes blink { to { visibility: hidden; } }
-.term__answer { border-top: 1px solid #3a4358; padding-top: 8px; }
-.term__answer .term__answerlabel { color: #a8b3cf; margin-bottom: 4px; }
+.term__answer { border-top: 1px solid var(--skin-term-rule); padding-top: 8px; }
+.term__answer .term__answerlabel { color: var(--skin-term-label); margin-bottom: 4px; }
 .term__answer pre { margin: 0; white-space: pre-wrap; }
 .term__foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 12px; background: var(--surface); border-top: 2px solid var(--border); }
 .term__foot .muted { font-size: 12px; }
