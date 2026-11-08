@@ -10,6 +10,7 @@ services:
     ports:
       - "127.0.0.1:${HOST_PORT:-7150}:7150"
     environment:
+      SHELF_URL: ${SHELF_URL:-http://127.0.0.1:4400}
       PORT: "7150"
       CALAB_BIND: 0.0.0.0
       CODING_AGENTS_LAB_MODE: ${CODING_AGENTS_LAB_MODE:-mock}

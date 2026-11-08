@@ -351,6 +351,15 @@ test('GET /api/shelf answers the shelf URL (null when unconfigured)', async () =
   }, { env: {} });
 });
 
+test('GET /api/shelf returns the configured SHELF_URL with no web build (trailing slash trimmed), and a POST to it is not 200', async () => {
+  await withServer(async (url) => {
+    const res = await fetch(`${url}/api/shelf`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { shelfUrl: 'https://shelf.example:8443' });
+    assert.notEqual((await post(url, '/api/shelf', {})).status, 200);
+  }, { env: { SHELF_URL: 'https://shelf.example:8443/' } });
+});
+
 test('rule 19: POST /api/mode {source} switches the server-side mode at runtime; Real is refused 409 with the reason while unconfigured; the body must be exactly {source}', async () => {
   await withInfoIsolated(async (url) => {
     // Switch to live (the local engine, loopback-only) and read again.
