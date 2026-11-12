@@ -47,7 +47,7 @@ describe("shell", () => {
     expect(screen.getByTestId("presenter-say")).toBeInTheDocument();
     expect(screen.getByTestId("banner")).toHaveTextContent(/SIMULATED/);
     expect(screen.getByTestId("banner")).toHaveTextContent(/UNVERIFIED on our tenant/);
-    expect(screen.getByTestId("presenter")).toHaveTextContent("Exit presenter");
+    expect(screen.getByTestId("presenter")).toHaveTextContent("Exit present");
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByTestId("presenter-say")).toBeNull();
     expect(BANNER_UNKNOWN).toMatch(/UNVERIFIED/);
@@ -55,10 +55,10 @@ describe("shell", () => {
 
   it("rule 19: the Mock/Real toggle POSTs the source to the server; Real is disabled with the reason while the gateway is unconfigured, and mock switches back", async () => {
     await mount();
-    expect(screen.getByTestId("mode-real")).toBeDisabled();
-    expect(screen.getByTestId("mode-real").getAttribute("title")).toContain("Real mode is not configured");
+    expect(screen.getByRole("option", { name: "Real" })).toBeDisabled();
+    expect(screen.getByRole("option", { name: "Real" }).getAttribute("title")).toContain("Real mode is not configured");
     // The mock direction still POSTs the source to the server's runtime mode.
-    await userEvent.click(screen.getByTestId("mode-mock"));
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "mock");
     await waitFor(() => expect(screen.getByTestId("mode")).toHaveTextContent("Mode: mock"));
     const info = await (await realFetch(`${base}/api/info`, { headers: { origin: base } })).json();
     expect(info.source).toBe("mock");
@@ -68,8 +68,8 @@ describe("shell", () => {
   it("the Mock/Live toggle changes the mode chip and the banner (same mode), and is remembered", async () => {
     await mount();
     // With the gateway unconfigured in this run, Real stays disabled with its reason; the mock switch still POSTs and is remembered.
-    expect(screen.getByTestId("mode-real")).toBeDisabled();
-    await userEvent.click(screen.getByTestId("mode-mock"));
+    expect(screen.getByRole("option", { name: "Real" })).toBeDisabled();
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "mock");
     await waitFor(() => expect(screen.getByTestId("mode")).toHaveTextContent("Mode: mock"));
     const info = await (await realFetch(`${base}/api/info`, { headers: { origin: base } })).json();
     expect(info.source).toBe("mock");
@@ -77,7 +77,7 @@ describe("shell", () => {
 
   it("the vertical picker changes the cast: the developer, the device and the repository", async () => {
     await mount();
-    await userEvent.selectOptions(screen.getByTestId("vertical"), "health");
+    await userEvent.selectOptions(screen.getByTestId("vertical-select"), "health");
     await evaluate();
     await click("sc-secret-prompt");
     await waitFor(() => expect(screen.getByTestId("who")).toHaveTextContent("omar.reyes@contoso.example"), T);
@@ -193,7 +193,7 @@ describe("evaluate tab, Live", () => {
   afterAll(() => { if (saved === undefined) delete process.env.STANDALONE_ENV; else process.env.STANDALONE_ENV = saved; });
   it("runs the real hook script, and judges your own action", async () => {
     await evaluate0();
-    await userEvent.click(screen.getByTestId("mode-real"));
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "real");
     await waitFor(() => expect(screen.getByTestId("mode")).toHaveTextContent("Mode: live"), T);
     await click("sc-destructive-shell");
     await waitFor(() => expect(screen.getByTestId("verdict-word")).toHaveTextContent("DENY"), T);
@@ -211,7 +211,7 @@ describe("evaluate tab, Live", () => {
     await click("ev-agent-cursor"); await click("sc-mcp-unlisted");
     await waitFor(() => expect(screen.getByTestId("reason-code")).toHaveTextContent("ASK-UNLISTED-MCP-SERVER"), T);
     const mock = screen.getByTestId("native-response").textContent;
-    await userEvent.click(screen.getByTestId("mode-real"));
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "real");
     await waitFor(() => expect(screen.getByTestId("mode")).toHaveTextContent("Mode: live"), T);
     await waitFor(() => expect(screen.getByTestId("evaluate-mode-note")).toHaveTextContent(/real hook script/), T);
     await waitFor(() => expect(screen.getByTestId("reason-code")).toHaveTextContent("ASK-UNLISTED-MCP-SERVER"), T);
@@ -223,7 +223,7 @@ describe("gateway down tab", () => {
   for (const mode of ["mock", "live"]) {
     it(`${mode}: fail open proceeds and records a gap; FailClosed refuses; the gap list shows both`, async () => {
       await mount();
-      if (mode === "live") await userEvent.click(screen.getByTestId("mode-real"));
+      if (mode === "live") await userEvent.selectOptions(screen.getByTestId("mode-select"), "real");
       await tab("Gateway down");
       expect(screen.getByTestId("down-toggle")).toHaveTextContent("unreachable");
       await click("gw-run");
