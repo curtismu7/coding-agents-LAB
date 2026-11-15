@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu";
 import ShelfLink from "./components/ShelfLink";
+import VerifyMark from "./components/VerifyMark.jsx";
 import AgentsTab from "./components/AgentsTab";
 import EvaluateTab from "./components/EvaluateTab";
 import GatewayTab from "./components/GatewayTab";
@@ -140,6 +141,7 @@ export default function App() {
               onReset={reset}
             >
               <ShelfLink />
+              <VerifyMark id="coding-agents-lab" />
             </TopMenu>
             <span className="chip" data-testid="mode">Mode: {mode || "..."}{mode === "real" ? " (live AI Guard)" : mode === "live" ? " (local engine, loopback)" : mode === "mock" ? " (tables)" : ""}</span>
           </div>
