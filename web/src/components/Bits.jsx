@@ -1,9 +1,11 @@
 import { visible } from "../safeText";
+import Json from "./JsonPane.jsx";
 
-// Raw JSON or text, rendered as text only (never markup). Control and bidi characters are shown as visible escapes.
-export function Json({ value, label, testId }) {
-  return <pre className="json" tabIndex={0} aria-label={label} data-testid={testId}>{visible(typeof value === "string" ? value : JSON.stringify(value, null, 2))}</pre>;
-}
+// Every JSON pane is the shared JsonPane (Form | JSON, full view, no scrolling); text only, never markup, through visible().
+export { Json };
+// The keys that matter in THIS lab's payloads, stood out in both views: what the agent sends to the hook, and what the hook prints back.
+export const HOT_REQUEST = ["hook_event_name", "tool_name", "toolName", "command", "prompt"];
+export const HOT_ANSWER = ["permissionDecision", "permission", "continue", "permissionDecisionReason", "user_message"];
 
 // Every product claim carries this tag. It is on every tab, and in presenter mode too.
 export function ClaimTag({ label }) {
@@ -109,8 +111,8 @@ export function Hops({ hops, traceId }) {
       {hops.map((h) => (
         <div key={h.n}>
           <h4 className="hops__title">{h.n}. {h.label}</h4>
-          <Json value={h.request} label={`hop ${h.n} request`} />
-          <Json value={h.response} label={`hop ${h.n} response`} />
+          <Json value={h.request} label={`hop ${h.n} request`} hot={HOT_REQUEST} />
+          <Json value={h.response} label={`hop ${h.n} response`} hot={HOT_ANSWER} />
         </div>
       ))}
     </details>

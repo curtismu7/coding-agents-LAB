@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getJson } from "../api";
-import { ClaimTag, Json, StatusTag } from "./Bits";
+import { ClaimTag, HOT_ANSWER, HOT_REQUEST, Json, StatusTag } from "./Bits";
 import AgentWindow from "./AgentWindow";
 import { visible } from "../safeText";
 
@@ -59,10 +59,10 @@ export default function AgentsTab({ story }) {
         <p className="muted" data-testid="channel-caveat">{ch.documented && <span><b>Documented:</b> {ch.documented} </span>}{ch.illustrative && <span><b>Illustrative, UNVERIFIED:</b> {ch.illustrative}</span>}</p>
         {ch.request ? (
           <div className="cols">
-            <div><h3 className="panel__sub">What the agent writes to the hook (stdin)</h3><Json value={ch.request} label="request" testId="agent-request" /></div>
+            <div><h3 className="panel__sub">What the agent writes to the hook (stdin)</h3><Json value={ch.request} label="request" testId="agent-request" hot={HOT_REQUEST} /></div>
             <div>
               <h3 className="panel__sub">What the hook prints (stdout), native</h3>
-              {Object.entries(ch.responses).map(([d, r]) => <div key={d}><span className="tag" data-state={d === "deny" ? "bad" : d === "ask" ? "warn" : "ok"}>{d}</span><Json value={r} label={`${d} response`} testId={`resp-${d}`} /></div>)}
+              {Object.entries(ch.responses).map(([d, r]) => <div key={d}><span className="tag" data-state={d === "deny" ? "bad" : d === "ask" ? "warn" : "ok"}>{d}</span><Json value={r} label={`${d} response`} testId={`resp-${d}`} hot={HOT_ANSWER} /></div>)}
             </div>
           </div>
         ) : <p className="field-error" data-testid="no-event">{agent.name} has no hook event for this kind of action, so a hook never sees it. This is a coverage gap: the endpoint sensor is what still finds it.</p>}
@@ -83,7 +83,7 @@ export default function AgentsTab({ story }) {
         <div className="cols">
           <div>
             <h3 className="panel__sub">Try a fake Cursor, by hand</h3>
-            <Json value={{ sample: 'echo \'{"hook_event_name":"beforeShellExecution","command":"rm -rf /tmp/cache","cwd":"/work"}\' | node hooks/lab-hook.mjs --agent cursor', note: 'prints {"permission":"...","user_message":"..."} — the same bytes the real Cursor hook protocol uses' }} label="fake client" testId="fake-cursor" />
+            <Json value={{ sample: 'echo \'{"hook_event_name":"beforeShellExecution","command":"rm -rf /tmp/cache","cwd":"/work"}\' | node hooks/lab-hook.mjs --agent cursor', note: 'prints {"permission":"...","user_message":"..."} — the same bytes the real Cursor hook protocol uses' }} label="fake client" testId="fake-cursor" hot={["sample"]} />
           </div>
           <div>
             <h3 className="panel__sub">Why Privilege cannot tell the difference</h3>

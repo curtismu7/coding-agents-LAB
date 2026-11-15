@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { createApp, startHttpServer } from "../../server/src/app.js";
 import { createHealth } from "../../server/src/health.js";
 import App, { BANNER_UNKNOWN, TABS } from "./App";
+import { setJsonView } from "./components/JsonPane";
 import { labelOffsets } from "./components/PatternDiagram";
 import { visible } from "./safeText";
 import { forgetWorkspace } from "./workspace";
@@ -24,7 +25,7 @@ beforeAll(async () => {
   globalThis.fetch = (u, init = {}) => realFetch(typeof u === "string" && u.startsWith("/") ? `${base}${u}` : u, { ...init, headers: { origin: base, ...(init.headers || {}) } });
 });
 afterAll(async () => { globalThis.fetch = realFetch; if (savedEnv === undefined) delete process.env.STANDALONE_ENV; else process.env.STANDALONE_ENV = savedEnv; await new Promise((r) => server.close(r)); });
-beforeEach(() => { cleanup(); forgetWorkspace(); try { window.localStorage.clear(); window.sessionStorage.clear(); } catch { /* ignore */ } window.location.hash = ""; realFetch(`${base}/api/mode`, { method: "POST", headers: { "content-type": "application/json", origin: base }, body: JSON.stringify({ source: "mock" }) }).catch(() => {}); });
+beforeEach(() => { cleanup(); setJsonView("raw"); forgetWorkspace(); try { window.localStorage.clear(); window.sessionStorage.clear(); } catch { /* ignore */ } window.location.hash = ""; realFetch(`${base}/api/mode`, { method: "POST", headers: { "content-type": "application/json", origin: base }, body: JSON.stringify({ source: "mock" }) }).catch(() => {}); });
 
 const T = { timeout: 15000 };
 const mount = async () => { render(<App />); await screen.findByTestId("matrix", {}, T); };
@@ -105,6 +106,18 @@ describe("agents tab", () => {
     expect(screen.getByTestId("resp-ask")).toHaveTextContent('"permissionDecision": "ask"');
   }, 60000);
 
+  it("the agent window types the event as text, then shows the request and the hook's answer as JSON panes", async () => {
+    await mount();
+    await userEvent.selectOptions(screen.getByTestId("aw-speed"), "off");
+    await click("aw-run");
+    const req = await screen.findByTestId("aw-request-box");
+    expect(req).toHaveAttribute("data-view", "raw");
+    expect(screen.getByTestId("aw-request")).toHaveTextContent("hook_event_name");
+    expect(within(req).getAllByRole("button").map((b) => b.textContent)).toEqual(["Form", "JSON"]);
+    expect(screen.getByTestId("aw-answer-json-box")).toHaveAttribute("data-view", "raw");
+    expect(screen.getByTestId("aw-answer-json")).toHaveTextContent(/permissionDecision|decision|continue|\{\}/);
+  }, 60000);
+
   it("marks what is illustrative in the matrix, says precisely what is documented per channel, and shows the sources as plain text", async () => {
     await mount();
     const matrix = within(screen.getByTestId("matrix"));
@@ -144,6 +157,24 @@ describe("evaluate tab, Mock", () => {
       expect(screen.getByTestId("dialog")).toHaveAttribute("data-state", "denied");
     }
   }, 90000);
+
+  it("Rule 24: the JSON panes read Form | JSON, one choice for the page, in full view, with this lab's key decisions stood out", async () => {
+    await evaluate0();
+    await click("sc-secret-prompt");
+    await waitFor(() => expect(screen.getByTestId("verdict-word")).toHaveTextContent("DENY"), T);
+    const box = screen.getByTestId("native-response-box");
+    expect(within(box).getAllByRole("button").map((b) => b.textContent)).toEqual(["Form", "JSON"]);
+    expect(box).toHaveAttribute("data-view", "raw");
+    expect(screen.getByTestId("native-response").tagName).toBe("PRE");
+    expect(screen.getByTestId("native-response")).toHaveTextContent('"decision": "block"');
+    await click("native-response-formatted");
+    expect(box).toHaveAttribute("data-view", "form");
+    expect(screen.getByTestId("native-response").tagName).toBe("DIV");
+    expect(screen.getByTestId("native-response")).toHaveTextContent(/decisionblock/);
+    expect(screen.getByTestId("native-response").querySelector('[data-alert="true"]')).not.toBeNull(); // decision is an alert key
+    expect(screen.getByTestId("hook-request").querySelector('[data-hot="true"]')).not.toBeNull(); // hook_event_name is this lab's hot key
+    expect(screen.getByTestId("hook-request-box")).toHaveAttribute("data-view", "form"); // one choice for every pane
+  }, 60000);
 
   it("an ask is an ask where the agent has one, and says so where it degrades or cannot enforce", async () => {
     await evaluate0();
