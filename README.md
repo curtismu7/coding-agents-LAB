@@ -171,3 +171,13 @@ Things the documentation said that the lab keeps visible rather than hiding: Cod
 ## Not done
 
 No SE k8s build (deferred by the owner, 2026-10-31). No catalog id yet. Every product claim stays UNVERIFIED until it is measured on a tenant that has the release.
+
+---
+
+## Real mode: what this lab uses in PingOne Privilege
+
+Real mode sends each hook event to the tenant's live **AI Gateway** (Privilege AI Guard in the
+decision path) over A2A JSON-RPC: `CODING_AGENTS_LAB_AIGATEWAY_URL`/`_BEARER`, falling back to
+the family's `CENTRAL_AGENT_A2A_*` keys in the shared settings file. The blocked and redacted
+answers were measured on the live gateway (2026-11-06). The netguard's allowlist is exactly the
+gateway's one hostname; the bearer is write-only and never shown.
