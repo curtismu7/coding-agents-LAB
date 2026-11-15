@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { visible } from "../safeText";
+import { Json, HOT_ANSWER, HOT_REQUEST } from "./Bits";
 
 // A little window that looks and behaves like each dev environment, running its hook for real:
 // the visitor picks a prompt from the dropdown (the same scripted actions the Evaluate tab
@@ -102,12 +102,13 @@ export default function AgentWindow({ agent, kind, compact = false }) {
         ) : phase === "idle" ? (
           <p className="muted">Ready. The hook command is armed for <b>{agent.channels.find((c) => c.kind === pickedSc.kind)?.event}</b>.</p>
         ) : (
-          <pre className="term__json" data-testid="aw-request">{visible(typed)}{phase === "typing" && <span className="cursor">▌</span>}</pre>
+          // While the event is being typed the text is a partial JSON string (shown as text with a cursor); once complete it is the pane.
+          <Json value={phase === "typing" ? `${typed}▌` : pickedSc.request} label="hook request" testId="aw-request" hot={HOT_REQUEST} />
         )}
         {phase === "answered" && pickedSc && (
           <div className="term__answer" data-testid="aw-answer">
             <div className="term__answerlabel"><span className="promptmark">{skin.marker}</span> hook answered — native {shownDecision}:</div>
-            <pre>{visible(JSON.stringify(shownAnswer, null, 2))}</pre>
+            <Json value={shownAnswer} label="native answer" testId="aw-answer-json" hot={HOT_ANSWER} />
           </div>
         )}
       </div>

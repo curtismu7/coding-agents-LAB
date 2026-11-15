@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, postJson } from "../api";
 import { visible } from "../safeText";
-import { AuditTable, ChannelNote, ClaimTag, AgentDialog, Findings, Hops, Json, Verdict } from "./Bits";
+import { AuditTable, ChannelNote, ClaimTag, AgentDialog, Findings, Hops, HOT_ANSWER, HOT_REQUEST, Json, Verdict } from "./Bits";
 
 export function ResultView({ r }) {
   if (!r.installed) return <p className="panel" data-state="warn" data-testid="untouched">{visible(r.note)}</p>;
@@ -12,7 +12,7 @@ export function ResultView({ r }) {
         <section className="panel" aria-label="The request the hook sends">
           <h3 className="panel__sub">1. What {r.agentName} writes to the hook</h3>
           <p className="muted">Identity and device come from the machine certificate. Here it is a MOCK subject: <code data-testid="cert">{visible(r.certSubject)}</code> (fingerprint {r.identity.fingerprint}).</p>
-          <Json value={r.hookRequest} label="hook request" testId="hook-request" />
+          <Json value={r.hookRequest} label="hook request" testId="hook-request" hot={HOT_REQUEST} />
           <p data-testid="who">Who: <b>{visible(r.identity.identity)}</b> on device <b>{visible(r.identity.device)}</b></p>
         </section>
         <section className="panel" aria-label="The evaluation">
@@ -27,7 +27,7 @@ export function ResultView({ r }) {
           <p>Engine decision <span className="tag">{r.evaluation.decision}</span> becomes native <span className="tag" data-testid="native-decision">{r.outcome.native}</span></p>
           {r.outcome.note && <p className="muted" data-testid="outcome-note">{visible(r.outcome.note)}</p>}
           <ChannelNote channel={r.channel} />
-          <Json value={r.native} label="native response" testId="native-response" />
+          <Json value={r.native} label="native response" testId="native-response" hot={HOT_ANSWER} />
         </section>
         <section className="panel" aria-label="The permission dialog">
           <h3 className="panel__sub">4. What the developer sees in {r.agentName}</h3>
@@ -81,7 +81,7 @@ export default function EvaluateTab({ story, mode, config, resetSignal }) {
           {story.scenarios.map((s) => <button key={s.id} type="button" aria-pressed={!customOn && scenario === s.id} onClick={() => { setUseCustom(false); setScenario(s.id); }} data-testid={`sc-${s.id}`}>{s.title}</button>)}
         </div>
         {!customOn && <p className="lesson" data-testid="lesson">{sc.lesson} <span className="tag">{story.kindLabel[sc.kind]}</span></p>}
-        {!customOn && <Json value={sc.call} label="the action" testId="action" />}
+        {!customOn && <Json value={sc.call} label="the action" testId="action" hot={["command", "path", "text", "tool", "result"]} />}
         <details open={customOn}>
           <summary>Your own action {live ? "" : "(Live mode only)"}</summary>
           {!live ? <p className="muted" data-testid="custom-needs-live">Mock mode only has tables for the scripted actions. Switch to Live to type your own: it is judged by the real rules, and nothing leaves the machine.</p> : (

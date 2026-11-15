@@ -92,7 +92,7 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
             <h3 className="panel__sub">{story.agents.find((a) => a.id === g.agent).name}</h3>
             <p>Path: <code>{visible(g.path)}</code> <StatusTag status={g.pathStatus} /> Body: <StatusTag status={g.bodyStatus} /></p>
             <p className="muted">{g.caveat}</p>
-            <Json value={g.text} label={`${g.agent} configuration text`} />
+            <Json value={g.text} label={`${g.agent} configuration text`} hot={["allowManagedHooksOnly", "command"]} />
             <a className="download" href={dl(g.text)} download={`${g.agent}-managed-config.txt`} data-testid={`dl-${g.agent}`}>Download as text</a>
           </article>
         ))}
