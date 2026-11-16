@@ -29,7 +29,7 @@ beforeEach(() => { cleanup(); setJsonView("raw"); forgetWorkspace(); try { windo
 
 const T = { timeout: 15000 };
 const mount = async () => { render(<App />); await screen.findByTestId("matrix", {}, T); };
-const tab = (name) => userEvent.click(screen.getByRole("tab", { name }));
+const tab = (name) => userEvent.click(within(screen.getByRole("navigation", { name: "Lab sections" })).getByRole("link", { name }));
 const click = (id) => userEvent.click(screen.getByTestId(id));
 const evaluate = async () => { await tab("Evaluate"); await screen.findByTestId("verdict", {}, T); };
 
@@ -38,8 +38,16 @@ describe("shell", () => {
     await mount();
     expect(screen.getByTestId("banner")).toHaveTextContent(/MOCK mode/);
     expect(screen.getByTestId("mode")).toHaveTextContent("Mode: mock");
+    // Standard app shell: the shell bar comes first, then main with the banner as its first child; the mode badge is in the bar.
+    const bar = document.querySelector("header.shell-bar");
+    expect(bar).not.toBeNull();
+    expect(bar.nextElementSibling).toBe(document.querySelector("main"));
+    expect(document.querySelector("main").firstElementChild).toBe(screen.getByTestId("banner"));
+    expect(bar.contains(screen.getByTestId("mode"))).toBe(true);
+    expect(bar.querySelector(".shell-right[data-testid='top-menu']")).not.toBeNull();
     for (const t of TABS) {
       await tab(t.label);
+      expect(within(screen.getByRole("navigation", { name: "Lab sections" })).getByRole("link", { name: t.label })).toHaveAttribute("aria-current", "page");
       expect(screen.getByTestId("banner")).toHaveTextContent(/UNVERIFIED on our tenant/);
       expect((await screen.findAllByTestId("claim-tag", {}, T)).length).toBeGreaterThan(0);
     }

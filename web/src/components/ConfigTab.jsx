@@ -77,7 +77,7 @@ export default function ConfigTab({ story, config, setConfig, resetSignal }) {
             {check.warnings.length > 0 && <ul className="plain" data-testid="cfg-warnings">{check.warnings.map((w) => <li key={w}>{w}</li>)}</ul>}
             <h3 className="panel__sub">The config as JSON (edit, then Apply)</h3>
             <textarea rows={9} value={jsonText} onChange={(e) => setJsonText(e.target.value)} data-testid="cfg-json" aria-label="Config JSON" />
-            <button type="button" onClick={applyJson} data-testid="cfg-apply">Apply JSON</button>
+            <button type="button" className="primary" onClick={applyJson} data-testid="cfg-apply">Apply JSON</button>
             {jsonError && <p className="field-error" role="alert">{jsonError}</p>}
           </div>
         </div>

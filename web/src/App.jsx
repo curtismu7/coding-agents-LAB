@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu";
 import ShelfLink from "./components/ShelfLink";
 import VerifyMark from "./components/VerifyMark.jsx";
@@ -59,7 +59,6 @@ export default function App() {
   // The picker only sets data-theme; the shared stylesheet does the rest ("auto" follows the system setting).
   useEffect(() => { if (theme === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; }, [theme]);
   useEffect(() => { applyFontSize(fontStep); try { localStorage.setItem(FONT_KEY, fontStep); } catch { /* not remembered */ } }, [fontStep]);
-  const tabsRef = useRef(null);
 
   useEffect(() => { getJson("/api/info").then((i) => { setModeState((m) => m || savedMode() || i.mode); setRealAvailable(i.realAvailable === true); }, () => setModeState((m) => m || savedMode() || "mock")); }, []);
   // Rule 19: Real is disabled with the server's reason while the AI Gateway settings are incomplete.
@@ -86,14 +85,6 @@ export default function App() {
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps
   const select = (id) => { setTab(id); try { window.history.replaceState(null, "", `#${id}`); } catch { /* ignore */ } };
 
-  // Keep the active tab fully in view in the scrolling tab strip (375px).
-  useEffect(() => {
-    const strip = tabsRef.current; const el = document.getElementById(`tab-${tab}`);
-    if (!strip || !el) return;
-    const left = el.offsetLeft - strip.offsetLeft;
-    if (left < strip.scrollLeft || left + el.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = Math.max(0, left - 8);
-  }, [tab]);
-
   useEffect(() => {
     const on = (e) => {
       if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
@@ -111,52 +102,43 @@ export default function App() {
     setResetMsg(ok ? "Reset: your workspace's audit trail and recorded gaps are cleared, the config is back to default and the diagram is back in place." : "Reset failed on the server; the view was reset.");
   }, [story]);
 
-  const onKeyTab = (e, i) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-    const next = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
-    select(next.id);
-    document.getElementById(`tab-${next.id}`)?.focus();
-  };
-
   const banner = story && mode ? story.banner[mode] : BANNER_UNKNOWN;
   const ready = story && mode && config;
   return (
     <div className={`app${presenter ? " app--presenter" : ""}`}>
-      <header>
-        <p className="banner" role="status" data-state={mode === "live" || mode === "real" ? "live" : "mock"} data-testid="banner">{banner}</p>
-        <div className="head">
-          <div>
-            <h1 className="head__title">Coding Agents LAB</h1>
-            {!presenter && story && <p className="head__intro">{story.intro}</p>}
-          </div>
-          <div className="head__tools">
-            <TopMenu
-              mode={{ value: mode === "real" || mode === "live" ? "real" : "mock", onChange: switchSource, realAvailable, realHint: realWhy }}
-              vertical={{ value: vertical, onChange: setVertical, options: story ? story.verticals : ["finance"] }}
-              theme={{ value: theme, onChange: pickTheme }}
-              fontSize={{ value: fontStep, onChange: setFontStep }}
-              present={{ active: presenter, onToggle: () => setPresenter((v) => !v) }}
-              talkTrack={{ active: tab === "talk", onToggle: () => select("talk") }}
-              help={{ href: "https://github.com/curtismu7/coding-agents-LAB#readme" }}
-              onReset={reset}
-            >
-              <ShelfLink />
-              <VerifyMark id="coding-agents-lab" />
-            </TopMenu>
-            <span className="chip" data-testid="mode">Mode: {mode || "..."}{mode === "real" ? " (live AI Guard)" : mode === "live" ? " (local engine, loopback)" : mode === "mock" ? " (tables)" : ""}</span>
-          </div>
-        </div>
-      </header>
-      <main>
-        <p className="sr-only" role="status" aria-live="polite">{resetMsg}</p>
-        <div role="tablist" aria-label="Lab sections" className="tabs" ref={tabsRef}>
-          {TABS.map((t, i) => (
-            <button key={t.id} id={`tab-${t.id}`} role="tab" type="button" aria-selected={tab === t.id} aria-controls={`panel-${t.id}`} tabIndex={tab === t.id ? 0 : -1}
-              onClick={() => select(t.id)} onKeyDown={(e) => onKeyTab(e, i)}>{t.label}</button>
+      <header className="shell-bar">
+        <span className="shell-brand">
+          <span className="shell-logo" aria-hidden="true">CA</span>
+          <h1>Coding Agents LAB</h1>
+          <span className={`shell-badge${mode === "live" || mode === "real" ? " shell-badge--real" : ""}`} data-testid="mode">Mode: {mode || "..."}{mode === "real" ? " (live AI Guard)" : mode === "live" ? " (local engine, loopback)" : mode === "mock" ? " (tables)" : ""}</span>
+        </span>
+        <nav className="shell-nav" aria-label="Lab sections">
+          {TABS.map((t) => (
+            <a key={t.id} href={`#${t.id}`} aria-current={tab === t.id ? "page" : undefined}
+              onClick={(e) => { e.preventDefault(); select(t.id); }}>{t.label}</a>
           ))}
-        </div>
-        <div id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`}>
-          {error ? <p className="app-error" role="alert">Could not load the lab ({error}). Is the server running?</p> : !ready ? <p className="muted">Loading...</p> : (
+        </nav>
+        <TopMenu
+          mode={{ value: mode === "real" || mode === "live" ? "real" : "mock", onChange: switchSource, realAvailable, realHint: realWhy }}
+          vertical={{ value: vertical, onChange: setVertical, options: story ? story.verticals : ["finance"] }}
+          theme={{ value: theme, onChange: pickTheme }}
+          fontSize={{ value: fontStep, onChange: setFontStep }}
+          present={{ active: presenter, onToggle: () => setPresenter((v) => !v) }}
+          talkTrack={{ active: tab === "talk", onToggle: () => select("talk") }}
+          help={{ href: "https://github.com/curtismu7/coding-agents-LAB#readme" }}
+          onReset={reset}
+        >
+          <ShelfLink />
+          <VerifyMark id="coding-agents-lab" />
+        </TopMenu>
+      </header>
+      <main className="page">
+        <p className="banner" role="status" data-state={mode === "live" || mode === "real" ? "live" : "mock"} data-testid="banner">{banner}</p>
+        {error && <p className="app-error" role="alert">Could not load the lab ({error}). Is the server running?</p>}
+        <p className="sr-only" role="status" aria-live="polite">{resetMsg}</p>
+        {!presenter && story && <p className="head__intro page-intro">{story.intro}</p>}
+        <div id={`panel-${tab}`} className="page-body">
+          {error ? null : !ready ? <p className="muted">Loading...</p> : (
             <>
               {presenter && tab !== "talk" && (
                 <aside className="presenter-say" data-testid="presenter-say" aria-label="Talk track">
