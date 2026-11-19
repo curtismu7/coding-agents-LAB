@@ -32,8 +32,10 @@ input[type="checkbox"] { width: 20px; height: 20px; min-height: 0; accent-color:
 textarea { width: 100%; display: block; font-family: var(--font-mono); font-size: 13px; margin: 4px 0 8px; }
 .stack { display: grid; gap: 12px; min-width: 0; }
 .stack > * { min-width: 0; }
-.cols { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); align-items: start; }
+.cols { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; align-items: start; }
 .cols > * { min-width: 0; }
+@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+.step-num { display: inline-grid; place-items: center; min-width: 1.4rem; height: 1.4rem; border-radius: 999px; background: var(--accent-gradient); color: var(--on-accent); font: 700 0.75rem var(--font-mono); margin-right: 0.5em; vertical-align: 2px; }
 .panel { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 12px 14px; min-width: 0; }
 .panel[data-state="warn"] { border-color: var(--status-warn); }
 .panel[data-state="bad"] { border-color: var(--danger-text); }
