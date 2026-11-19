@@ -17,7 +17,7 @@ export default function AgentsTab({ story }) {
   return (
     <div className="stack">
       <section className="panel">
-        <h2 className="panel__title">Six agents, each through its own hook <ClaimTag /></h2>
+        <h2 className="panel__title"><span className="step-num" aria-hidden="true">1</span>Six agents, each through its own hook <ClaimTag /></h2>
         <p data-testid="agents-claim">{story.claims[0].claim}</p>
         <p className="muted" data-testid="legend">
           Source discipline: every shape below is tagged <span className="tag" data-state="ok">documented</span> (read in the vendor&apos;s own documentation at build time, 2026-10-31; the sources are listed in the README) or <span className="tag" data-state="warn">illustrative, UNVERIFIED</span> (the lab&apos;s own example; never stated as fact), or <span className="tag" data-state="warn">partly documented</span> (the envelope is documented, a field or tool name is not). A matrix cell without a note is fully documented. The caveat under each says which part is which.
@@ -35,7 +35,7 @@ export default function AgentsTab({ story }) {
         <div className="seg" role="group" aria-label="Agent">
           {story.agents.map((a) => <button key={a.id} type="button" aria-pressed={agentId === a.id} onClick={() => setAgentId(a.id)} data-testid={`agent-${a.id}`}>{a.name}</button>)}
         </div>
-        <h2 className="panel__title">{agent.name} <span className="muted">({agent.vendor})</span></h2>
+        <h2 className="panel__title"><span className="step-num" aria-hidden="true">2</span>{agent.name} <span className="muted">({agent.vendor})</span></h2>
         <h3 className="panel__sub">Machine-level managed configuration</h3>
         <div className="scroll"><table className="tbl" data-testid="managed-paths">
           <thead><tr><th>System</th><th>Path</th><th>Status</th></tr></thead>
@@ -73,7 +73,7 @@ export default function AgentsTab({ story }) {
       </section>
 
       <section className="panel">
-        <h2 className="panel__title">Emulating any of them (no client install) <span className="tag" data-state="ok">measured</span></h2>
+        <h2 className="panel__title"><span className="step-num" aria-hidden="true">3</span>Emulating any of them (no client install) <span className="tag" data-state="ok">measured</span></h2>
         <p data-testid="emulation-claim">
           A coding agent&apos;s hook is a small JSON protocol: the editor writes one event object to a command&apos;s stdin
           and reads one native answer from its stdout. That makes every agent on this page <b>emulatable with one script</b> —
