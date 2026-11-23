@@ -123,17 +123,12 @@ export function replyEvent({ sent, agent }) {
   const done = (layer, outcome, cause, message, detail) => ({ layer, product: 'AI Gateway reply', step: layer === 'privilege' ? 'ai-guard-reply' : 'gateway-reply', outcome, cause, who: agent, message: `${message} ${RECEIVED}`, detail: { status, ...detail } });
   if (code === 'DENY-AIGUARD-BLOCKED') return done('privilege', 'refused', 'policy-stop', `The gateway answered ${CALL} with a JSON-RPC error that carries the policy-block message the lab measured on 2026-11-06: the lab reads that as AI Guard stopping the request.`, {});
   if (code === 'DENY-AIGUARD-REDACTED') return done('privilege', 'info', 'redaction-marker', `The gateway completed the task and its reply carries a [REDACTED:...] marker. The lab reads that as the data-loss policy stopping the text, but the gateway did not report a verdict, so this is information.`, { state: 'completed' });
-  if (status === 401 || status === 403) return done('gateway', 'refused', `status-${status}`, `The gateway answered HTTP ${status} to ${CALL}: it did not let the call in.`, {});
   if (code === 'ALLOW-AIGUARD-ERROR') return done('gateway', 'info', 'error-reply', `The gateway answered ${CALL} with a JSON-RPC error that is not the measured policy-block message. The lab cannot tell a fault from a refusal here (it lets the action proceed), so this is information.`, {});
-  if (code === 'ALLOW-AIGUARD-CLEAN') {
-    const state = String(sent.body?.result?.status?.state ?? '');
-    return state === 'completed'
-      ? done('privilege', 'allowed', 'completed', `The gateway completed the task for this action and its reply carries no redaction marker: the lab reads that as AI Guard raising no block.`, { state })
-      : done('privilege', 'info', 'not-completed', `The gateway answered ${CALL} with a task that is not completed yet, so there is no verdict to count as a pass.`, { state });
-  }
-  if (status !== null && !(status >= 200 && status < 300)) return done('gateway', 'info', `status-${status}`, `The gateway answered HTTP ${status} to ${CALL}. That status is not a policy verdict, so it is information.`, {});
-  if (!sent.body) return done('gateway', 'info', 'unreadable', `The gateway answered ${CALL} with a body the lab could not read as JSON, so it is information.`, {});
-  return done('gateway', 'info', 'unmapped', `The gateway answered ${CALL} in a shape the lab does not map, so it is information.`, {});
+  // The last mapped answer (mapGatewayAnswer gives no other code): a completed task with no marker. Any other reply never reaches here (the caller turns it away).
+  const state = String(sent.body?.result?.status?.state ?? '');
+  return state === 'completed'
+    ? done('privilege', 'allowed', 'completed', `The gateway completed the task for this action and its reply carries no redaction marker: the lab reads that as AI Guard raising no block.`, { state })
+    : done('privilege', 'info', 'not-completed', `The gateway answered ${CALL} with a task that is not completed yet, so there is no verdict to count as a pass.`, { state });
 }
 
 export const NO_REPLY_NOTE_LIVE = 'The hook script tried the gateway and got no reply (the lab points it at a loopback port nothing listens on), so there is no gateway row and no pass. What the hook then did by its failure policy is the agent row.';
@@ -191,8 +186,14 @@ export function createRunLog({ write = (line) => process.stdout.write(`${line}\n
         // A call that got no reply is a line and a note on the lanes, never a row.
         noReply: (ev, note) => safely('no-reply', () => { run.notes.push(note); write(decisionLine({ ...ev, noReply: true }, stamp(), run.id, run.mode)); }),
         expectHook: (traceId) => safely('expect-hook', () => { const k = keyOf(ws, traceId); waiting.set(k, run); mine.push(k); }),
-        // The evaluation ended in an error answer: nothing is kept. If it never got as far as an event, that is the lab turning the request away.
-        abandon: (code) => { forget(); if (code && run.events.length === 0 && run.notes.length === 0) turnedAway(code); },
+        // The evaluation ended in an error answer. A run that never got as far as an event is the lab turning the request away (one run=- line). A run that began
+        // keeps what it wrote: its stdout lines carry its id and the error answer carries none, so the record route must still find it.
+        abandon: (code) => {
+          forget();
+          if (run.events.length === 0 && run.notes.length === 0) { if (code) turnedAway(code); return; }
+          run.endedAt = stamp();
+          safely('abandon', () => workspaces.addRun(ws, run));
+        },
         // The run ends when its answer is built: it is stored then, so an open run is never in the list and never pushed out of it.
         close() {
           forget();

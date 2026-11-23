@@ -129,9 +129,9 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
       const dialog2 = dialogFor({ agent, call: shown ?? call, outcome, reason: evaluation.reason });
       return { ...base, covered: true, installed: true, hookRequest: shownRequest, evaluation, outcome, native, dialog: dialog2, gap, hops, real: { attempted: true, reached: false } };
     }
-    run.reply(replyEvent({ sent, agent })); // stamped the moment the reply was in hand
     const m = sent.mapped;
-    if (!m) throw new InputError('real_unmapped', 'the AI Guard service answered in a shape this lab does not map (see the raw answer in the hops)');
+    if (!m) throw new InputError('real_unmapped', 'the AI Guard service answered in a shape this lab does not map (see the raw answer in the hops)'); // turned away: no reply row, no run id
+    run.reply(replyEvent({ sent, agent })); // stamped the moment the reply was in hand
     // The lab's own rules still run, as a comparison layer, and are shown beside the real answer.
     const labRules = gatewayEvaluate({ agent, call, cast });
     outcome = nativeOutcome(agent, call.kind, m.decision);

@@ -297,23 +297,39 @@ test('Real: a reply is one `response` row at the time the lab had it, in the lan
   }
 });
 
-test('Real: what the lab cannot map (an HTTP refusal, a fault, an unreadable body, an unknown shape) is a fixed 400 with one line, no run id and no record, and is never a plain allow', async () => {
+test('Real: what the lab cannot map (an HTTP 401 or 403, a fault, an unreadable body, an unknown shape) is a fixed 400 with one run=- line and no record: no run id, no reply line, and never a refusal by the gateway', async () => {
   const cases = [
-    ['HTTP 401', { status: 401, body: { message: 'nope' } }, 'gateway-reply', 'stopped', 'status-401'],
-    ['HTTP 403', { status: 403, body: { message: 'nope' } }, 'gateway-reply', 'stopped', 'status-403'],
-    ['HTTP 500', { status: 500, body: { message: 'boom' } }, 'gateway-reply', 'unclear', 'status-500'],
-    ['a body that is not JSON', { body: '<html>not json</html>', type: 'text/html' }, 'gateway-reply', 'unclear', 'unreadable'],
-    ['a shape the lab does not map', { body: { hello: true } }, 'gateway-reply', 'unclear', 'unmapped'],
+    ['HTTP 401', { status: 401, body: { message: 'nope' } }],
+    ['HTTP 403', { status: 403, body: { message: 'nope' } }],
+    ['HTTP 500', { status: 500, body: { message: 'boom' } }],
+    ['a body that is not JSON', { body: '<html>not json</html>', type: 'text/html' }],
+    ['a shape the lab does not map', { body: { hello: true } }],
   ];
-  for (const [label, reply, step, result, cause] of cases) {
+  for (const [label, reply] of cases) {
     const r = await realRun(reply);
     assert.equal(r.status, 400, label);
     assert.equal(r.answer.error, 'real_unmapped');
     assert.ok(!('obs' in r.answer), `${label}: an error answer carries no run id`);
-    assert.equal(r.lines.length, 1, label);
-    assert.match(r.lines[0], new RegExp(` step=${step} layer=gateway actor=claude-code result=${result} cause=${cause} mode=real run=ev-`), label);
+    assert.equal(r.lines.length, 1, `${label}: one line, and no reply line for the unmapped answer`);
+    assert.match(r.lines[0], / step=request-check layer=lab actor=- result=stopped cause=real_unmapped mode=- run=-$/, label);
     assert.match(r.lines[0], LINE);
+    assert.ok(!/ layer=(gateway|privilege) /.test(r.lines[0]), `${label}: the gateway did not decide`);
   }
+});
+
+test('an error answer after a run began keeps that run, so the run id on its stdout lines is one the record route can find; an error before any event is a run=- line', () => {
+  const lines = []; const workspaces = createWorkspaces();
+  const runLog = createRunLog({ workspaces, write: (l) => lines.push(l) });
+  const started = runLog.open({ ws: 'w-obs-a', mode: 'live' });
+  started.event({ layer: 'privilege', product: 'lab rules (live engine, not Privilege)', step: 'policy-check', outcome: 'refused', cause: 'destructive-command', who: 'claude-code', message: 'A rule fired.', detail: {} });
+  started.abandon('live_failed');
+  const id = /run=(\S+)$/.exec(lines.at(-1))[1];
+  assert.match(id, RUN_ID);
+  assert.ok(workspaces.run('w-obs-a', id), 'the run its stdout line names is kept');
+  const before = lines.length;
+  runLog.open({ ws: 'w-obs-a', mode: 'live' }).abandon('live_failed');
+  assert.equal(lines.length, before + 1);
+  assert.match(lines.at(-1), / step=request-check layer=lab actor=- result=stopped cause=live_failed mode=- run=-$/);
 });
 
 test('Real: a call that got no reply is a no-reply line, a failure-policy line, no row and no pass; every lane says why, and the lab\'s own failure policy is not a row', async () => {
