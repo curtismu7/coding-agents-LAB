@@ -13,7 +13,7 @@ import express from 'express';
 import { hostCheck, sameOriginWrites } from './safety.js';
 import { createHealth } from './health.js';
 import { loadCast, verticalFrom } from './cast.js';
-import { defaultMode, modeOf } from './config.js';
+import { MODES, defaultMode, modeOf } from './config.js';
 import { buildStory } from './story.js';
 import { DIAGRAM_NAMES, buildDiagram } from './diagramData.js';
 import { InputError } from './errors.js';
@@ -27,6 +27,8 @@ import { newTrace } from './trace.js';
 import { evaluateAction, handleHook } from './service.js';
 import { SOURCES } from './sources.js';
 import { aiGuardConfig, realNotConfiguredReason } from './aiguard.js';
+import { RunObsError } from './runObservability.js';
+import { RUN_ID, createRunLog, runRecord } from './runObs.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
@@ -34,7 +36,7 @@ const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
 // in it is a JSON 404 (under /api) or the page shell (a page address).
 const ROUTES = {
   '/': ['GET'],
-  '/api/health': ['GET'], '/api/story': ['GET'], '/api/diagram': ['GET'], '/api/sources': ['GET'], '/api/info': ['GET'], '/api/mode': ['GET', 'POST'], '/api/audit': ['GET'], '/api/gaps': ['GET'],
+  '/api/health': ['GET'], '/api/story': ['GET'], '/api/diagram': ['GET'], '/api/sources': ['GET'], '/api/info': ['GET'], '/api/mode': ['GET', 'POST'], '/api/audit': ['GET'], '/api/gaps': ['GET'], '/api/run-observability': ['GET'],
   '/api/config': ['POST'], '/api/evaluate': ['POST'], '/api/hook': ['POST'], '/api/reset': ['POST'],
 };
 const METHODS = buildMethodTable(ROUTES);
@@ -42,7 +44,7 @@ const METHODS = buildMethodTable(ROUTES);
 const fail = (res, status, code, headers = {}) => res.set(headers).status(status).json({ error: code });
 const CONFIG = process.env.CUSTOMER_CONFIG || path.resolve(HERE, '../../customer.config.json');
 
-export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE, webDist = WEB_DIST, env = process.env } = {}) {
+export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), table = MOCK_TABLE, webDist = WEB_DIST, env = process.env, runLog = createRunLog({ workspaces }) } = {}) {
   // The runtime server-side mode (rule 19): the source the toggle switches. It starts at the configured default.
   let currentSource = () => defaultMode();
   const app = express();
@@ -119,16 +121,18 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.post('/evaluate', async (req, res, next) => {
     const id = ws(req, res); if (!id) return;
     noStore(res);
-    if (!objectBody(req)) return res.status(400).json({ error: 'bad_request' });
+    // A request the lab turns away before anything is evaluated begins no run: one stdout line (rule 27), no run id.
+    const turnAway = (status, error, detail) => { runLog.turnedAway(error); return res.status(status).json(detail === undefined ? { error } : { error, detail }); };
+    if (!objectBody(req)) return turnAway(400, 'bad_request');
     try {
       const mode = modeOf(req.body.mode);
-      if (!mode) return res.status(400).json({ error: 'bad_mode', detail: 'mode must be mock, live or real' });
+      if (!mode) return turnAway(400, 'bad_mode', 'mode must be mock, live or real');
       const v = req.body.config === undefined ? validateConfig(defaultConfig(castFor(req))) : validateConfig(req.body.config);
-      if (!v.ok) return res.status(400).json({ error: 'bad_config', detail: v.errors.map((e) => `${e.field}: ${e.message}`).join('; ') });
-      if (typeof req.body.agent !== 'string') return res.status(400).json({ error: 'unknown_agent', detail: 'agent is required' });
+      if (!v.ok) return turnAway(400, 'bad_config', v.errors.map((e) => `${e.field}: ${e.message}`).join('; '));
+      if (typeof req.body.agent !== 'string') return turnAway(400, 'unknown_agent', 'agent is required');
       const out = await evaluateAction({
         mode, cast: castFor(req), vertical: verticalOf(req), agent: req.body.agent, scenario: req.body.scenario, custom: req.body.custom, config: v.config,
-        down: req.body.down === true, ws: id, workspaces, table, traceparent: req.headers.traceparent, port: req.socket.localPort,
+        down: req.body.down === true, ws: id, workspaces, runLog, table, traceparent: req.headers.traceparent, port: req.socket.localPort,
       });
       res.set('traceparent', out.hops?.[0]?.traceparent || '');
       if (req.body.scenario !== undefined) res.locals.labOwned = true; // a scripted scenario: lab data, the labelled mock credential stays visible
@@ -140,18 +144,35 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.post('/hook', (req, res, next) => {
     const id = ws(req, res); if (!id) return;
     noStore(res);
-    if (!objectBody(req)) return res.status(400).json({ error: 'bad_request' });
+    if (!objectBody(req)) { runLog.turnedAway('bad_request'); return res.status(400).json({ error: 'bad_request' }); }
     try {
       const trace = newTrace(req.headers.traceparent);
-      const out = handleHook({ ws: id, body: req.body, cast: castFor(req), workspaces, trace });
+      const out = handleHook({ ws: id, body: req.body, cast: castFor(req), workspaces, trace, runLog });
       res.set('traceparent', `00-${trace.traceId}-${trace.span()}-01`);
       return res.json(out);
-    } catch (e) { return failure(res, next)(e); }
+    } catch (e) { if (e instanceof InputError) runLog.turnedAway(e.code); return failure(res, next)(e); }
   });
 
   api.get('/audit', (req, res) => { const id = ws(req, res); if (!id) return; noStore(res); res.json(workspaces.audit(id)); });
   api.get('/gaps', (req, res) => { const id = ws(req, res); if (!id) return; noStore(res); res.json(workspaces.gaps(id)); });
-  // Reset clears this workspace's audit trail and recorded gaps only.
+  // Rule 27: the record of one run, in the mode the page is in. The run's own mode is stored with it, so a Mock or Live run is never answered as a Real reply
+  // (or the other way round) after the toggle; a run that is not there, or was made in another mode, is a plain note and no record. Errors are { error, message }.
+  api.get('/run-observability', async (req, res, next) => {
+    const id = ws(req, res); if (!id) return;
+    noStore(res);
+    const refuse = (error, message) => res.status(400).json({ error, message });
+    if (Object.keys(req.query).some((k) => k !== 'runId' && k !== 'mode')) return refuse('unknown_field', 'Only runId and mode are taken.');
+    if (typeof req.query.mode !== 'string' || !MODES.includes(req.query.mode)) return refuse('bad_mode', 'mode must be mock, live or real.');
+    if (typeof req.query.runId !== 'string' || !RUN_ID.test(req.query.runId)) return refuse('bad_run_id', 'runId must be a run id this lab gave.');
+    const run = workspaces.run(id, req.query.runId);
+    if (!run) return res.json({ record: null, message: 'There is no record of that run: Reset cleared it, newer runs pushed it out, or it never began.' });
+    if (run.mode !== req.query.mode) return res.json({ record: null, message: `That run was made in ${run.mode} mode and the page is in ${req.query.mode} mode, so it is not shown. Run it again.` });
+    try { return res.json({ record: await runRecord(run) }); } catch (err) {
+      if (err instanceof RunObsError) return res.status(err.status).json({ error: err.code, message: err.message });
+      return next(err);
+    }
+  });
+  // Reset clears this workspace's audit trail, recorded gaps and run records only (all three live in the workspace's state).
   api.post('/reset', (req, res) => { const id = ws(req, res); if (!id) return; noStore(res); workspaces.reset(id); return res.json({ reset: 'ok', workspace: id }); });
   app.use('/api', api);
 

@@ -1,5 +1,6 @@
 // Rule 13: a workspace id keeps one visitor's state apart from another's. Server state per workspace is the audit trail of
-// evaluations (who ran what on which laptop) and the recorded gateway gaps, both bounded in count, size and age.
+// evaluations (who ran what on which laptop), the recorded gateway gaps and the records of the last few runs (rule 27, runObs.js),
+// all bounded in count, size and age.
 // The browser sends its id in X-Workspace (default "default").
 import { isCredentialId, maskDeep } from './mask.js';
 import { safeWorkspaceId } from './shared/hygiene.js';
@@ -8,6 +9,7 @@ export const WORKSPACE_RE = /^[a-z0-9-]{1,40}$/;
 export const DEFAULT_WORKSPACE = 'default';
 export const MAX_AUDIT = 50;
 export const MAX_GAPS = 50;
+export const MAX_RUNS = 5; // run records kept per workspace AND per mode, so Live runs never push out Mock ones
 
 // An id is "default" or "w-" and lowercase letters, digits and hyphens (1 to 40 characters in all). It is echoed in answers, so it must not become a
 // place to park a secret: the shared masker's isCredentialId refuses what looks like a credential (a long hex or alphanumeric run, a token prefix such
@@ -27,8 +29,8 @@ export function workspaceFrom(req) {
 
 // State is masked at WRITE time (addAudit, addGap): what is stored is what may be shown, whatever a caller passes in.
 export function createWorkspaces({ max = 500, ttlMs = 60 * 60 * 1000, now = Date.now } = {}) {
-  const map = new Map(); // id -> { audit, gaps, at }; insertion order = oldest first
-  const fresh = () => ({ audit: [], gaps: [], at: now() });
+  const map = new Map(); // id -> { audit, gaps, runs, at }; insertion order = oldest first
+  const fresh = () => ({ audit: [], gaps: [], runs: [], at: now() });
   const sweep = () => {
     const t = now();
     for (const [id, v] of map) { if (t - v.at > ttlMs) map.delete(id); else break; }
@@ -40,6 +42,13 @@ export function createWorkspaces({ max = 500, ttlMs = 60 * 60 * 1000, now = Date
     gaps(id) { sweep(); return { workspace: id, gaps: map.get(id)?.gaps ?? [] }; },
     addAudit(id, entry) { const v = touch(id); v.audit = [...v.audit, { ...maskDeep(entry), at: new Date(now()).toISOString() }].slice(-MAX_AUDIT); },
     addGap(id, gap) { const v = touch(id); v.gaps = [...v.gaps, { ...maskDeep(gap), at: new Date(now()).toISOString() }].slice(-MAX_GAPS); },
+    // A run is stored when it ends, so the run that is still open is never in the list and never pushed out of it.
+    addRun(id, run) {
+      const v = touch(id);
+      const mine = new Set(v.runs.filter((r) => r.mode === run.mode).concat(run).slice(-MAX_RUNS));
+      v.runs = v.runs.concat(run).filter((r) => r.mode !== run.mode || mine.has(r));
+    },
+    run(id, runId) { sweep(); return map.get(id)?.runs.find((r) => r.id === runId) ?? null; },
     reset(id) { map.delete(id); },
     size() { return map.size; },
   };

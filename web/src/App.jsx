@@ -99,7 +99,7 @@ export default function App() {
     const ok = await resetWorkspace().catch(() => false);
     setConfig(story ? structuredClone(story.defaultConfig) : null);
     setResetSignal((n) => n + 1);
-    setResetMsg(ok ? "Reset: your workspace's audit trail and recorded gaps are cleared, the config is back to default and the diagram is back in place." : "Reset failed on the server; the view was reset.");
+    setResetMsg(ok ? "Reset: your workspace's audit trail, recorded gaps and run records are cleared, the config is back to default and the diagram is back in place." : "Reset failed on the server; the view was reset.");
   }, [story]);
 
   const banner = story && mode ? story.banner[mode] : BANNER_UNKNOWN;

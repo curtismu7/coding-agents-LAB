@@ -7,6 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { createApp, startHttpServer } from '../src/app.js';
 import { createHealth } from '../src/health.js';
+import { createWorkspaces } from '../src/workspaces.js';
+import { silentRunLog } from './helpers.js';
 
 function distDir() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ca-dist-'));
@@ -19,7 +21,8 @@ function distDir() {
 async function withApp(webDist, fn) {
   const health = createHealth({ intervalMs: 3_600_000 });
   await health.ready;
-  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile: '/nonexistent/customer.config.json', webDist }) });
+  const workspaces = createWorkspaces();
+  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile: '/nonexistent/customer.config.json', webDist, workspaces, runLog: silentRunLog(workspaces) }) });
   try { await fn(url.replace(/\/$/, '')); } finally { health.stop(); await new Promise((r) => server.close(r)); }
 }
 const call = async (url, method, p, init = {}) => {

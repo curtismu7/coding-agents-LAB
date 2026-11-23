@@ -60,7 +60,19 @@ test('mapGatewayAnswer: the measured shapes map to deny/allow', () => {
   assert.equal(mapGatewayAnswer({ body: COMPLETED(), status: 200 }).decision, 'allow');
   const redacted = COMPLETED({ history: [{ role: 'user', parts: [{ kind: 'text', text: 'key is [REDACTED:data_exfiltration]' }] }] });
   assert.equal(mapGatewayAnswer({ body: redacted, status: 200 }).decision, 'deny');
-  assert.equal(mapGatewayAnswer({ body: { jsonrpc: '2.0', id: 'x' }, status: 500 }), null);
+  assert.equal(mapGatewayAnswer({ body: { jsonrpc: '2.0', id: 'x' }, status: 500 }).decision, 'info');
+});
+
+test('mapGatewayAnswer: an HTTP 401, 403 or 5xx is information, never a policy decision, whatever its body says (a credential check or a fault)', () => {
+  const generic = { jsonrpc: '2.0', id: 'x', error: { code: -32000, message: 'something else went wrong' } };
+  for (const status of [401, 403, 500, 502, 503]) {
+    for (const body of [BLOCKED, generic]) {
+      const m = mapGatewayAnswer({ body, status });
+      assert.deepEqual({ decision: m.decision, reasonCode: m.reasonCode }, { decision: 'info', reasonCode: `INFO-AIGUARD-HTTP-${status}` }, `HTTP ${status} with ${body === BLOCKED ? 'the block text' : 'a generic error'}`);
+    }
+  }
+  // the block text still denies when the gateway answered 200: only a 401, 403 or 5xx is information
+  assert.equal(mapGatewayAnswer({ body: BLOCKED, status: 200 }).decision, 'deny');
 });
 
 test('sendToAiGuard: posts A2A message/send with the bearer, never in any returned field but the call config', async () => {
