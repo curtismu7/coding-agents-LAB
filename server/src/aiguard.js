@@ -79,7 +79,8 @@ export const eventText = (call) => String(textOf(call) ?? '').slice(0, MAX_TEXT)
 //   redacted -> completed, and the echoed prompt part reads "key is [REDACTED:data_exfiltration]"
 export function mapGatewayAnswer({ body, status, sentText }) {
   // An HTTP 401 or 403 is the gateway's answer about the lab's credential, and a 5xx is a fault: neither is a policy decision, whatever the body says.
-  if (status === 401 || status === 403 || (status >= 500 && status < 600)) return null;
+  // They are information (lesson 4): the run keeps a row for the reply status, and no AI Guard verdict is read from them.
+  if (status === 401 || status === 403 || (status >= 500 && status < 600)) return { decision: 'info', reasonCode: `INFO-AIGUARD-HTTP-${status}`, decidedBy: 'the live gateway (HTTP status, no verdict)', measured: false };
   if (body && body.error) {
     const msg = String(body.error.message ?? '');
     if (/blocked by security policy/i.test(msg)) {

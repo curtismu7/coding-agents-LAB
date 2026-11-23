@@ -132,6 +132,19 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
     const m = sent.mapped;
     if (!m) throw new InputError('real_unmapped', 'the AI Guard service answered in a shape this lab does not map (see the raw answer in the hops)'); // turned away: no reply row, no run id
     run.reply(replyEvent({ sent, agent })); // stamped the moment the reply was in hand
+    if (m.decision === 'info') {
+      // HTTP 401, 403 or 5xx: the gateway gave no verdict (a credential check or a fault). The row is information; the action gets the hook's failure policy,
+      // as when the gateway does not answer, and the lab records a gap. No AI Guard decision is made or audited.
+      const u = unreachableOutcome(agent, call.kind, !!config.FailClosed);
+      outcome = { native: u.native, covered: true, refused: u.refused };
+      native = respond(agent, call.kind, u.native, u.reason);
+      gap = { agent, kind: call.kind, identity: identity.identity, device: identity.device, failClosed: !!config.FailClosed, outcome: u.refused ? 'refused' : 'proceeded', reasonCode: u.reasonCode, reason: u.reason, summary: summarize(call).slice(0, 100) };
+      workspaces.addGap(ws, { ...gap, scenario: scenarioId, mode });
+      run.event(failurePolicyEvent({ agent, kind: call.kind, failClosed: !!config.FailClosed, refused: gap.outcome === 'refused', live: false }));
+      evaluation = { decision: u.refused ? 'deny' : 'allow', reasonCode: u.reasonCode, reason: u.reason, findings: [], decidedBy: 'the hook\'s failure policy (the gateway gave no verdict)' };
+      hops = buildRealHops({ trace, agent, hookRequest: shownRequest, native, sent, evaluation, mode: 'real' });
+      return { ...base, covered: true, installed: true, hookRequest: shownRequest, evaluation, outcome, native, dialog: dialogFor({ agent, call: shown ?? call, outcome, reason: evaluation.reason }), gap, hops, real: { attempted: true, reached: true } };
+    }
     // The lab's own rules still run, as a comparison layer, and are shown beside the real answer.
     const labRules = gatewayEvaluate({ agent, call, cast });
     outcome = nativeOutcome(agent, call.kind, m.decision);

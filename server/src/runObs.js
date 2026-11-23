@@ -11,7 +11,7 @@
 // reads no product log). The person is always the lab's MOCK certificate subject, so in Real that lane is `not-logged`, and so are the agent (the lab simulates
 // it) and Authorize (there is none). A reply is one row, in the lane that decided: an AI Guard verdict (a completed task, or the measured block message in a JSON-RPC error)
 // is Privilege; any other JSON-RPC error is information in the agent gateway lane, because the lab cannot tell a gateway decision from a tool error. An HTTP
-// 401, 403 or 5xx has no row: it is a credential check or a fault, and the lab turns it away as unmapped. The lab's own comparison rules, which Real also runs, and the hook's failure policy are the lab's own computations: they are written to stdout
+// 401, 403 or 5xx is information in the agent gateway lane whatever its body says: it is a credential check or a fault, not a policy decision. The lab's own comparison rules, which Real also runs, and the hook's failure policy are the lab's own computations: they are written to stdout
 // and are not rows of a Real record.
 //
 // Stdout line: `<iso> coding-agents-lab decision step=<step> layer=<layer> actor=<who> result=<passed|stopped|unclear|no-reply> cause=<cause> mode=<mode> run=<id>`.
@@ -122,6 +122,7 @@ export function replyEvent({ sent, agent }) {
   const status = Number.isInteger(sent.status) ? sent.status : null;
   const code = sent.mapped?.reasonCode;
   const done = (layer, outcome, cause, message, detail) => ({ layer, product: 'AI Gateway reply', step: layer === 'privilege' ? 'ai-guard-reply' : 'gateway-reply', outcome, cause, who: agent, message: `${message} ${RECEIVED}`, detail: { status, ...detail } });
+  if (sent.mapped?.decision === 'info') return done('gateway', 'info', `http-${status}`, `The gateway answered ${CALL} with HTTP ${status}. The lab reads that as the gateway's reply status (a credential check for 401 and 403, a fault for 5xx), not as a policy decision, so the lab holds no verdict and this is information.`, {});
   if (code === 'DENY-AIGUARD-BLOCKED') return done('privilege', 'refused', 'policy-stop', `The gateway answered ${CALL} with a JSON-RPC error that carries the policy-block message the lab measured on 2026-11-06: the lab reads that as AI Guard stopping the request.`, {});
   if (code === 'DENY-AIGUARD-REDACTED') return done('privilege', 'info', 'redaction-marker', `The gateway completed the task and its reply carries a [REDACTED:...] marker. The lab reads that as the data-loss policy stopping the text, but the gateway did not report a verdict, so this is information.`, { state: 'completed' });
   if (code === 'ALLOW-AIGUARD-ERROR') return done('gateway', 'info', 'error-reply', `The gateway answered ${CALL} with a JSON-RPC error that is not the measured policy-block message. The lab cannot tell a fault from a refusal here (it lets the action proceed), so this is information.`, {});

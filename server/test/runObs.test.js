@@ -297,14 +297,41 @@ test('Real: a reply is one `response` row at the time the lab had it, in the lan
   }
 });
 
-test('Real: what the lab cannot map (an HTTP 401, 403 or 5xx, even with the block text, a fault, an unreadable body, an unknown shape) is a fixed 400 with one run=- line and no record: no run id, no reply line, and never a refusal by the gateway', async () => {
+test('Real: an HTTP 401, 403 or 5xx is an information row in the agent gateway lane, whatever its body says: a credential check or a fault, never a policy stop; the run is kept with its id and its record', async () => {
   const cases = [
-    ['HTTP 401', { status: 401, body: { message: 'nope' } }],
-    ['HTTP 403', { status: 403, body: { message: 'nope' } }],
-    ['HTTP 500', { status: 500, body: { message: 'boom' } }],
     ['HTTP 401 that carries the policy-block text', { status: 401, body: BLOCKED }],
-    ['HTTP 403 that carries the policy-block text', { status: 403, body: BLOCKED }],
+    ['HTTP 403 with a generic error', { status: 403, body: { message: 'nope' } }],
+    ['HTTP 500 with a generic error', { status: 500, body: { message: 'boom' } }],
     ['HTTP 502 that carries the policy-block text', { status: 502, body: BLOCKED }],
+    ['HTTP 503 with a generic error', { status: 503, body: OTHER_ERROR }],
+  ];
+  for (const [label, reply] of cases) {
+    const r = await realRun(reply);
+    assert.equal(r.status, 200, label);
+    assert.match(r.answer.obs.runId, RUN_ID, label);
+    assert.notEqual(r.answer.evaluation.decision, 'deny', `${label}: not a policy stop`);
+    assert.equal(r.answer.evaluation.decidedBy, "the hook's failure policy (the gateway gave no verdict)", label);
+    const rec = r.record;
+    assert.deepEqual(assertRunObservability(rec), [], label);
+    const rows = rowsOf(rec);
+    assert.equal(rows.length, 1, `${label}: one reply, one row`);
+    assert.deepEqual([rows[0].layer, rows[0].outcome, rows[0].origin, rows[0].detail.status], ['gateway', 'info', 'response', reply.status], label);
+    assert.match(rows[0].message, new RegExp(`HTTP ${reply.status}`), label);
+    assert.equal(rec.summary.allowed, 0, label);
+    assert.equal(rec.summary.refused, 0, label);
+    assert.equal(rec.coverage.privilege, 'not-logged', `${label}: no AI Guard verdict`);
+    assert.match(rec.reasons.privilege, /no AI Guard verdict/, label);
+    assert.equal(r.lines.filter((l) => / layer=privilege /.test(l)).length, 0, `${label}: the gateway did not decide`);
+    assert.equal(r.lines.filter((l) => / layer=gateway actor=claude-code result=unclear cause=http-\d{3} mode=real run=/.test(l)).length, 1, `${label}: one gateway line`);
+    assert.match(r.lines.find((l) => / layer=gateway /.test(l)), new RegExp(` cause=http-${reply.status} mode=real run=${r.answer.obs.runId}$`), label);
+    for (const l of r.lines) { assert.match(l, LINE, label); noMatcherReads(l); }
+    const text = JSON.stringify(rec) + r.lines.join('\n');
+    assert.ok(!text.includes(BEARER) && !text.includes(r.gw), label);
+  }
+});
+
+test('Real: what the lab cannot map (an unreadable body, an unknown shape) is a fixed 400 with one run=- line and no record: no run id, no reply line, and never a refusal by the gateway', async () => {
+  const cases = [
     ['a body that is not JSON', { body: '<html>not json</html>', type: 'text/html' }],
     ['a shape the lab does not map', { body: { hello: true } }],
   ];
