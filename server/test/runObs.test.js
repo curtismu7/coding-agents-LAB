@@ -330,6 +330,74 @@ test('Real: an HTTP 401, 403 or 5xx is an information row in the agent gateway l
   }
 });
 
+test('Real: an HTTP 401, 403 or 503 under FailClosed is the lab\'s own stop, worded as the gateway\'s reply status and never as unreachable; FailClosed off proceeds with the same information row', async () => {
+  const cases = [
+    ['HTTP 401 that carries the policy-block text', 401, BLOCKED],
+    ['HTTP 403 with a generic error', 403, { message: 'nope' }],
+    ['HTTP 503 with a generic error', 503, OTHER_ERROR],
+  ];
+  for (const [label, status, body] of cases) {
+    for (const failClosed of [true, false]) {
+      const tag = `${label}, FailClosed ${failClosed ? 'on' : 'off'}`;
+      const r = await realRun({ status, body }, { body: { config: { Enabled: true, FailClosed: failClosed } } });
+      assert.equal(r.status, 200, tag);
+      const a = r.answer;
+      const runId = a.obs.runId;
+      assert.match(runId, RUN_ID, tag);
+      // the answer: a refusal is the lab's own FailClosed stop; proceeding is a recorded gap. Neither is an AI Guard decision.
+      const want = failClosed
+        ? { decision: 'deny', reasonCode: `INFO-AIGUARD-FAILCLOSED-${status}`, refused: true, dialog: 'denied', gap: 'refused', result: 'stopped', cause: 'fail-closed-stop' }
+        : { decision: 'allow', reasonCode: `GAP-AIGUARD-HTTP-${status}`, refused: false, dialog: 'proceeds', gap: 'proceeded', result: 'unclear', cause: 'fail-open-proceeds' };
+      assert.equal(a.evaluation.decision, want.decision, tag);
+      assert.equal(a.evaluation.reasonCode, want.reasonCode, tag);
+      assert.equal(a.outcome.refused, want.refused, tag);
+      assert.equal(a.dialog.state, want.dialog, tag);
+      assert.equal(a.gap.reasonCode, want.reasonCode, tag);
+      assert.equal(a.gap.outcome, want.gap, tag);
+      assert.deepEqual(a.real, { attempted: true, reached: true }, `${tag}: the gateway answered`);
+      assert.match(a.evaluation.reason, new RegExp(`HTTP ${status}`), tag);
+      assert.ok(!/could not be reached|unreachable|DENY-GATEWAY-UNREACHABLE/i.test(JSON.stringify([a.evaluation, a.gap, a.native, a.dialog, a.outcome])), `${tag}: never worded as unreachable`);
+      // the stdout lines: the reply, then the lab's own failure policy. Two lines, both carrying the run id.
+      assert.equal(r.lines.length, 2, tag);
+      assert.match(r.lines[0], new RegExp(` layer=gateway actor=claude-code result=unclear cause=http-${status} mode=real run=${runId}$`), tag);
+      assert.match(r.lines[1], new RegExp(` step=failure-policy layer=agent actor=claude-code result=${want.result} cause=${want.cause} mode=real run=${runId}$`), tag);
+      for (const l of r.lines) { assert.match(l, LINE, tag); noMatcherReads(l); }
+      // the record: the one reply as an information row; the lab's failure policy is a stdout line, not a row of a Real record
+      const rec = r.record;
+      assert.deepEqual(assertRunObservability(rec), [], tag);
+      const rows = rowsOf(rec);
+      assert.deepEqual(rows.map((x) => [x.layer, x.outcome, x.origin, x.detail.status]), [['gateway', 'info', 'response', status]], tag);
+      assert.ok(!/could not be reached|unreachable/i.test(rows[0].message), `${tag}: the row is not worded as unreachable`);
+      assert.deepEqual([rec.summary.allowed, rec.summary.refused], [0, 0], `${tag}: no verdict is counted`);
+      assert.equal(rec.coverage.privilege, 'not-logged', tag);
+    }
+  }
+});
+
+test('the failure-policy line for a gateway that answered (HTTP 401, 403 or 5xx) says the gateway answered, never that it could not be reached', () => {
+  for (const status of [401, 403, 503]) {
+    for (const refused of [true, false]) {
+      const ev = failurePolicyEvent({ agent: 'claude-code', kind: 'prompt', failClosed: true, refused, live: false, status });
+      assert.match(ev.message, new RegExp(`HTTP ${status}`));
+      assert.ok(!/could not reach|unreachable/i.test(ev.message), ev.message);
+      assert.equal(ev.cause, refused ? 'fail-closed-stop' : 'fail-closed-cannot-stop');
+    }
+  }
+  const off = failurePolicyEvent({ agent: 'claude-code', kind: 'prompt', failClosed: false, refused: false, live: false, status: 401 });
+  assert.equal(off.cause, 'fail-open-proceeds');
+  assert.match(off.message, /HTTP 401.*FailClosed is off/);
+});
+
+test('Real: a FailClosed refusal of an HTTP 401 is only ever the lab\'s own stop when the hook can refuse; on a channel the hook cannot refuse it proceeds and says why', async () => {
+  const r = await realRun({ status: 401, body: BLOCKED }, { agent: 'copilot', body: { config: { Enabled: true, FailClosed: true } } });
+  assert.equal(r.status, 200);
+  assert.equal(r.answer.evaluation.decision, 'allow');
+  assert.equal(r.answer.evaluation.reasonCode, 'GAP-AIGUARD-HTTP-401');
+  assert.match(r.answer.evaluation.reason, /cannot refuse/);
+  assert.equal(r.lines.length, 2);
+  assert.match(r.lines[1], / step=failure-policy layer=agent actor=copilot result=unclear cause=fail-closed-cannot-stop mode=real run=/);
+});
+
 test('Real: what the lab cannot map (an unreadable body, an unknown shape) is a fixed 400 with one run=- line and no record: no run id, no reply line, and never a refusal by the gateway', async () => {
   const cases = [
     ['a body that is not JSON', { body: '<html>not json</html>', type: 'text/html' }],

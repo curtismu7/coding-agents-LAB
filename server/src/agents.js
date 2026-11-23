@@ -339,6 +339,18 @@ export function respond(agentId, kind, nativeDecision, reason) {
   return a.respond(kind, nativeDecision, String(reason ?? '').slice(0, 300));
 }
 
+// The gateway ANSWERED with HTTP 401, 403 or 5xx and gave no verdict (aiguard.js reads it as information). It is never worded as unreachable. Under
+// FailClosed a blockable event is refused as the lab's own stop, not as an AI Guard decision; otherwise (or where the hook cannot refuse) the action proceeds.
+export function answeredOutcome(agentId, kind, status, failClosed) {
+  const a = agentById(agentId); const ch = a?.channels[kind];
+  const said = `The gateway answered with HTTP ${status} and gave no verdict.`;
+  if (failClosed && ch?.event && ch.canBlock) return { native: 'deny', refused: true, reasonCode: `INFO-AIGUARD-FAILCLOSED-${status}`, reason: `${said} The lab's FailClosed policy refused the action. That is the lab's own stop, not an AI Guard decision.` };
+  return {
+    native: 'allow', refused: false, reasonCode: `GAP-AIGUARD-HTTP-${status}`,
+    reason: failClosed ? `${said} FailClosed is set, but ${a?.name || agentId}'s hook for this event cannot refuse (documented), so the action proceeds.` : `${said} FailClosed is off, so the action proceeds and the gap is recorded for review.`,
+  };
+}
+
 // The gateway cannot be reached (or timed out). FailClosed refuses where the agent's hook can refuse; otherwise the action proceeds
 // and the gap is recorded. Used by the lab's hook script and by the Mock path, so both behave the same.
 export function unreachableOutcome(agentId, kind, failClosed) {

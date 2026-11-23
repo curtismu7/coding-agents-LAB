@@ -100,14 +100,16 @@ export function hookAnswerEvent({ agent, kind, event, outcome, engine, live }) {
 }
 
 // The gateway was not reached: the hook's own failure policy. A refusal here is the lab's own stop (`blocked`); letting the action proceed is no decision about it.
-export function failurePolicyEvent({ agent, kind, failClosed, refused, live }) {
+// `status` is set when the gateway ANSWERED with HTTP 401, 403 or 5xx and gave no verdict: then the text says so, and never says unreachable.
+export function failurePolicyEvent({ agent, kind, failClosed, refused, live, status }) {
   const cause = refused ? 'fail-closed-stop' : failClosed ? 'fail-closed-cannot-stop' : 'fail-open-proceeds';
   const basis = live ? 'The hook script (the lab read this when the script exited)' : 'The lab';
+  const reached = status ? `${basis} got HTTP ${status} from the gateway, which gave no verdict` : `${basis} could not reach the gateway`;
   return {
     layer: 'agent', product: live ? 'lab hook script (a real process)' : 'lab simulated hook', step: 'failure-policy', outcome: refused ? 'blocked' : 'info', cause, who: agent,
     message: refused
-      ? `${basis} could not reach the gateway and FailClosed is on, so the hook refused this ${kindName(kind)} in ${agentName(agent)}'s own shape. That is the lab's own stop, not a gateway decision.`
-      : `${basis} could not reach the gateway. ${failClosed ? `FailClosed is on, but ${agentName(agent)}'s hook for this event cannot refuse` : 'FailClosed is off'}, so the action proceeds and the lab records a gap. No decision was made about the action.`,
+      ? `${reached} and FailClosed is on, so ${status ? "the lab's own failure policy" : 'the hook'} refused this ${kindName(kind)} in ${agentName(agent)}'s own shape. That is the lab's own stop, not a gateway decision.`
+      : `${reached}. ${failClosed ? `FailClosed is on, but ${agentName(agent)}'s hook for this event cannot refuse` : 'FailClosed is off'}, so the action proceeds and the lab records a gap. No decision was made about the action.`,
     detail: { agent, kind, failClosed: !!failClosed },
   };
 }
