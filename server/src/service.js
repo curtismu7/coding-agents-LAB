@@ -11,6 +11,7 @@ import { MAX_SUBJECT } from './identity.js';
 import { formatTraceparent, newTrace } from './trace.js';
 import { aiGuardConfig, realNotConfiguredReason, sendToAiGuard } from './aiguard.js';
 import { buildRealHops } from './evaluation.js';
+import { NO_REPLY_NOTE, NO_REPLY_NOTE_LIVE, NO_RUN, failurePolicyEvent, hookAnswerEvent, personEvent, policyEvent, replyEvent, safely } from './runObs.js';
 
 export const MAX_CUSTOM = 2000;
 
@@ -33,7 +34,7 @@ export function customCall(input) {
 export const shownCall = (input) => customCall({ kind: input.kind, text: maskText(input.text) });
 
 // ---- POST /api/hook -----------------------------------------------------------------------------------------------------------
-export function handleHook({ ws, body, cast, workspaces, trace, mode = 'live' }) {
+export function handleHook({ ws, body, cast, workspaces, trace, mode = 'live', runLog }) {
   if (body === null || typeof body !== 'object') throw new InputError('bad_request', 'body must be an object');
   const { agent, payload, certSubject } = body;
   if (!agentById(agent)) throw new InputError('unknown_agent', 'agent must be one of the six');
@@ -42,6 +43,8 @@ export function handleHook({ ws, body, cast, workspaces, trace, mode = 'live' })
   const g = gatewayFromPayload({ agent, payload, cast });
   if (!g) return maskDeep({ handled: false, native: {}, decision: 'allow', reasonCode: 'IGNORED-EVENT', reason: 'Not an event the lab evaluates.', findings: [], identity: who, traceId: trace.traceId });
   workspaces.addAudit(ws, { agent, kind: g.call.kind, identity: who.identity, device: who.device, decision: g.evaluation.decision, reasonCode: g.evaluation.reasonCode, nativeDecision: g.outcome.native, summary: summarize(g.call), traceId: trace.traceId, mode });
+  // The gateway's decision, written once at the moment it is made (rule 27). It joins the evaluation that is waiting for this trace id; a hook run by hand is one line.
+  safely('hook-event', () => runLog?.hookDecision(ws, trace.traceId, policyEvent({ evaluation: g.evaluation, agent, kind: g.call.kind, live: true })));
   // Nothing in the answer may carry a raw credential, whatever the event held (the reason can quote an MCP server name).
   return maskDeep({ handled: true, kind: g.call.kind, native: g.native, decision: g.evaluation.decision, reasonCode: g.evaluation.reasonCode, reason: g.evaluation.reason, findings: g.evaluation.findings, decidedBy: g.evaluation.decidedBy, outcome: g.outcome, identity: who, traceId: trace.traceId });
 }
@@ -49,7 +52,7 @@ export function handleHook({ ws, body, cast, workspaces, trace, mode = 'live' })
 // ---- The evaluate flow --------------------------------------------------------------------------------------------------------
 function untouched({ agent, why }) { return { covered: false, installed: false, note: why, outcome: { native: 'none', covered: false }, evaluation: null, native: null, dialog: null, gap: null, agent }; }
 
-async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, config, down, ws, workspaces, table, traceparent, port }) {
+async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, config, down, ws, workspaces, table, traceparent, port, run }) {
   if (!agentById(agent)) throw new InputError('unknown_agent', `agent must be one of the six`);
   let call; let shown = null; let scenarioId = null; let lesson = null; let expected = null;
   if (scenario !== undefined) {
@@ -77,6 +80,9 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
     const o = nativeOutcome(agent, call.kind, 'allow');
     return { ...base, covered: false, installed: true, note: o.note, outcome: o, evaluation: null, native: null, dialog: null, gap: null, hookRequest: null, hops: [] };
   }
+  // From here the action reaches the engine, so a run begins (rule 27). The developer is the lab's MOCK certificate subject in every mode; in Real it is not a row.
+  if (mode !== 'real') run.event(personEvent(identity));
+  const live = mode === 'live';
 
   let evaluation = null; let outcome; let native; let gap = null; let hops;
   if (down) {
@@ -87,14 +93,18 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
       const r = await runHookScript({ agent, payload: hookRequest, certSubject: mockCertSubject(cast), gateways: [DEAD_GATEWAY], failClosed: !!config.FailClosed, vertical, workspace: ws, traceparent: formatTraceparent(trace.traceId, trace.span()) });
       if (!r.gap || !r.native) throw new InputError('live_failed', 'the hook script did not report a gap');
       native = r.native; gap = r.gap;
+      run.noReply({ layer: 'gateway', step: 'gateway-call', who: agent, cause: 'no-reply' }, NO_REPLY_NOTE_LIVE);
     } else gap = { agent, kind: call.kind, identity: identity.identity, device: identity.device, failClosed: !!config.FailClosed, outcome: u.refused ? 'refused' : 'proceeded', reasonCode: u.reasonCode, reason: u.reason, summary: summarize(call).slice(0, 100) };
     workspaces.addGap(ws, { ...gap, scenario: scenarioId, mode });
+    run.event(failurePolicyEvent({ agent, kind: call.kind, failClosed: !!config.FailClosed, refused: gap.outcome === 'refused', live }));
     evaluation = { decision: u.refused ? 'deny' : 'allow', reasonCode: u.reasonCode, reason: u.reason, findings: [], decidedBy: 'the hook\'s failure policy (the gateway was not reached)' };
     hops = buildHops({ trace, agent, hookRequest: shownRequest, native, evaluation, down: true, mode });
   } else if (mode === 'live') {
+    run.expectHook(trace.traceId); // the lab's gateway route writes its decision at the moment it makes it and joins it to this run by trace id
     const r = await runHookScript({ agent, payload: hookRequest, certSubject: mockCertSubject(cast), gateways: [`http://127.0.0.1:${port}/`], failClosed: !!config.FailClosed, vertical, workspace: ws, traceparent: formatTraceparent(trace.traceId, trace.span()) });
     if (r.code !== 0 || !r.native || !r.gateway) throw new InputError('live_failed', `the hook script failed (exit ${r.code})`);
     native = r.native; outcome = r.gateway.outcome;
+    run.event(hookAnswerEvent({ agent, kind: call.kind, event: chn.event, outcome, engine: r.gateway.decision, live: true })); // stamped when the script exited and the lab read what it printed
     evaluation = { decision: r.gateway.decision, reasonCode: r.gateway.reasonCode, reason: r.gateway.reason, findings: r.gateway.findings || [], decidedBy: r.gateway.decidedBy };
     hops = buildHops({ trace, agent, hookRequest: shownRequest, native, evaluation, down: false, mode });
   } else if (mode === 'real') {
@@ -107,16 +117,19 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
       sent = await sendToAiGuard({ call, cfg, traceparent, agent, identity });
     } catch {
       // The gateway could not be reached: the same failure policy as a dead tunnel.
+      run.noReply({ layer: 'gateway', step: 'gateway-call', who: agent, cause: 'no-reply' }, NO_REPLY_NOTE);
       const u = unreachableOutcome(agent, call.kind, !!config.FailClosed);
       outcome = { native: u.native, covered: true, refused: u.refused };
       native = respond(agent, call.kind, u.native, u.reason);
       evaluation = { decision: u.refused ? 'deny' : 'allow', reasonCode: u.reasonCode, reason: u.reason, findings: [], decidedBy: 'the hook\'s failure policy (the AI Guard service did not answer)' };
       gap = { agent, kind: call.kind, identity: identity.identity, device: identity.device, failClosed: !!config.FailClosed, outcome: u.refused ? 'refused' : 'proceeded', reasonCode: u.reasonCode, reason: u.reason, summary: summarize(call).slice(0, 100) };
       workspaces.addGap(ws, { ...gap, scenario: scenarioId, mode });
+      run.event(failurePolicyEvent({ agent, kind: call.kind, failClosed: !!config.FailClosed, refused: gap.outcome === 'refused', live: false }));
       hops = buildHops({ trace, agent, hookRequest: shownRequest, native, evaluation, down: true, mode: 'real' });
       const dialog2 = dialogFor({ agent, call: shown ?? call, outcome, reason: evaluation.reason });
       return { ...base, covered: true, installed: true, hookRequest: shownRequest, evaluation, outcome, native, dialog: dialog2, gap, hops, real: { attempted: true, reached: false } };
     }
+    run.reply(replyEvent({ sent, agent })); // stamped the moment the reply was in hand
     const m = sent.mapped;
     if (!m) throw new InputError('real_unmapped', 'the AI Guard service answered in a shape this lab does not map (see the raw answer in the hops)');
     // The lab's own rules still run, as a comparison layer, and are shown beside the real answer.
@@ -132,6 +145,8 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
     if (!row || !row.covered) throw new InputError('no_table_row', 'the mock table has no row for this action');
     evaluation = { decision: row.decision, reasonCode: row.reasonCode, reason: row.reason, findings: row.findings, decidedBy: row.decidedBy };
     outcome = row.outcome; native = row.native;
+    run.event(policyEvent({ evaluation, agent, kind: call.kind, live: false }));
+    run.event(hookAnswerEvent({ agent, kind: call.kind, event: chn.event, outcome, engine: evaluation.decision, live: false }));
     workspaces.addAudit(ws, { agent, kind: call.kind, identity: identity.identity, device: identity.device, decision: row.decision, reasonCode: row.reasonCode, nativeDecision: outcome.native, summary: summarize(call), traceId: trace.traceId, mode });
     hops = buildHops({ trace, agent, hookRequest: shownRequest, native, evaluation, down: false, mode });
   }
@@ -140,9 +155,13 @@ async function evaluateInner({ mode, cast, vertical, agent, scenario, custom, co
 }
 // A visitor's own action may carry a real credential: every string in the response (the call, the hook request, the hops, the dialog,
 // the reasons) is masked before it leaves. The scripted actions carry only the labelled mock credential, which stays visible (rule 4).
-export async function evaluateAction(args) {
-  const r = await evaluateInner(args);
-  return args.scenario === undefined && args.custom !== undefined ? maskDeep(r) : r;
+export async function evaluateAction({ runLog, ...args }) {
+  // The run of this evaluation (rule 27): its events are stored as they happen and the run is kept when the answer is built. A request that fails validation
+  // or ends in an error answer returns no run id (what it wrote on stdout stays there).
+  const run = safely('open', () => runLog.open({ ws: args.ws, mode: args.mode })) ?? NO_RUN;
+  let r;
+  try { r = await evaluateInner({ ...args, run }); } catch (err) { run.abandon(err instanceof InputError ? err.code : undefined); throw err; }
+  return { ...(args.scenario === undefined && args.custom !== undefined ? maskDeep(r) : r), obs: run.close() };
 }
 
 // The human reason for a mapped real answer. The raw gateway text is never quoted (it may echo parts of the event).

@@ -1,11 +1,17 @@
 import http from 'node:http';
 import { createApp, startHttpServer } from '../src/app.js';
 import { createHealth } from '../src/health.js';
+import { createRunLog } from '../src/runObs.js';
+import { createWorkspaces } from '../src/workspaces.js';
 
-export async function withServer(fn, { configFile = '/nonexistent/customer.config.json', env } = {}) {
+// Tests that are not about stdout write no run-observability lines (the lab writes one per decision), so the test log stays readable.
+export const silentRunLog = (workspaces) => createRunLog({ workspaces, write: () => {} });
+
+export async function withServer(fn, { configFile = '/nonexistent/customer.config.json', env, runLog, workspaces } = {}) {
   const health = createHealth({ intervalMs: 3_600_000 });
   await health.ready;
-  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile, ...(env ? { env } : {}) }) });
+  const store = workspaces ?? createWorkspaces();
+  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile, ...(env ? { env } : {}), workspaces: store, runLog: runLog ?? silentRunLog(store) }) });
   try { await fn(url.replace(/\/$/, '')); } finally { health.stop(); await new Promise((r) => server.close(r)); }
 }
 

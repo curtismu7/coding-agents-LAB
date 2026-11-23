@@ -66,7 +66,7 @@ export default function GatewayTab({ story, mode, config, setConfig, resetSignal
           {res.gap
             ? <p className="panel" data-state={res.gap.outcome === "refused" ? "bad" : "warn"} data-testid="gap-line">{res.gap.outcome === "refused" ? "Refused" : "Proceeded"}: {visible(res.gap.reason)}</p>
             : <p className="panel" data-state="ok" data-testid="gap-line">The gateway answered; no gap.</p>}
-          <ResultView r={res} />
+          <ResultView r={res} mode={mode} />
         </section>
       )}
       <section className="panel"><GapTable gaps={gaps} /></section>

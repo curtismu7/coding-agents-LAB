@@ -9,6 +9,7 @@ import path from 'node:path';
 import { createApp, startHttpServer } from '../src/app.js';
 import { createHealth } from '../src/health.js';
 import { createWorkspaces } from '../src/workspaces.js';
+import { silentRunLog } from './helpers.js';
 import { mockSecret } from '../src/data.js';
 
 const V = ['hunter2', 'xyz'].join('');
@@ -24,7 +25,7 @@ function distDir() {
 async function withApp(fn, { webDist = distDir(), workspaces = createWorkspaces() } = {}) {
   const health = createHealth({ intervalMs: 3_600_000 });
   await health.ready;
-  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile: '/nonexistent/customer.config.json', webDist, workspaces }) });
+  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile: '/nonexistent/customer.config.json', webDist, workspaces, runLog: silentRunLog(workspaces) }) });
   try { await fn(url.replace(/\/$/, ''), workspaces); } finally { health.stop(); await new Promise((r) => server.close(r)); }
 }
 const call = async (url, method, p, { headers = {}, body } = {}) => {

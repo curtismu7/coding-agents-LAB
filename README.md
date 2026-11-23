@@ -116,10 +116,41 @@ The model, `intent-encoder`, answers `POST /v2/models/intent-encoder/infer` with
 
 ```
 npm run doctor   # 17 checks; PORT=7159 npm run doctor to use a spare port
-npm run reset    # clears the default workspace's audit trail and recorded gaps (the UI Reset also restores the config and the diagram)
+npm run reset    # clears the default workspace's audit trail, recorded gaps and run records (the UI Reset also restores the config and the diagram)
 ```
 
 `GET /api/health` returns `demo-health/1`. The workspace id comes in `X-Workspace`; every hop carries a W3C `traceparent`. Presenter mode: press `P` (Esc leaves); the simulation banner stays. `npm run mock-table`, `npm run talk-track` and `npm run content-pack` regenerate the generated files. See `docs/safety.md`.
+
+## What each layer logged for this run (rule 27)
+
+Under every result on the Evaluate and Gateway down tabs the page shows the family's shared panel "What each layer logged for this run" for the run that answer began. The panel (`web/src/run-observability/`) and the collector (`server/src/runObservability.js`) are vendored byte for byte from the canonical copy and pinned by `run-observability.sha256`; `server/src/runObs.js` is this lab's half. One `POST /api/evaluate` that reaches the engine is one run, in Mock, Live or Real. **The lab reads no logs**: it vendors the core only, there is no log reader, no `RUN_OBS_*` setting and no Docker socket anywhere (a test pins that).
+
+Every row is an event the lab computed once and stamped once; the record is built from the stored events (nothing is run twice), and each row is also one stdout line written at the moment it was stamped, so a row's time is its line's time. **Time = when the lab recorded it**, not a product's own timestamp. A tie (events in the same millisecond) keeps the order the events happened in. Counts in the panel are rows, not decisions: one evaluation gives several rows.
+
+| Layer | Mock and Live (`simulated`) | Real (`response`) |
+|---|---|---|
+| Person | One information row: the developer account and device read from the MOCK certificate subject. The lab has no sign-in and no certificate store. | **Not logged.** The subject goes to the gateway only as A2A metadata, which the gateway does not verify, so the person stays simulated even in Real and is never a Real row. |
+| Agent (OBO) | One information row: what the agent's hook did with the decision (its native answer), or its failure policy when the gateway was not reached (`blocked` only when FailClosed makes the hook refuse). There is no OBO token: the agent is an id the lab chose. | **Not logged.** The agent and its hook are simulated; the gateway receives only the agent's name in the metadata and does not verify it. |
+| Authorize | **Not logged**: this lab has no PingOne Authorize. | Same. |
+| Privilege | One row: the decision of the lab's own deterministic rules, a lab-invented stand-in for Privilege's Coding Agents / AI Guard (**not Privilege**; the page says so under the panel). deny = refused, a plain allow = allowed, ask (a hold) and alert (proceeds) = information, never a pass. | The AI Guard verdict, when the one reply is a verdict: a JSON-RPC error carrying the measured policy-block message = refused; a completed task with no marker = allowed; a completed task with a `[REDACTED:...]` marker (the lab's reading, the gateway reports no verdict), a task not completed yet = information. The lab reads no Privilege log. |
+| Agent gateway | **Not logged.** In Mock nothing is sent to a gateway. In Live the gateway is a route of the lab's own process: it carries the hook's event and its decision is the Privilege row, so the call is not a separate decision. A hook call that got no reply (the Gateway down tab) is no row. | Only a JSON-RPC error that is not the measured block message, as information (the lab cannot tell a fault from a refusal; its own mapping lets the action proceed). Otherwise **not logged**: the lab reads no log of the gateway. |
+| Resource server | **Not logged.** MCP calls are evaluated and never executed, so no tool server exists to log anything. | Same. |
+
+A Real record holds at most one row: the one reply the lab received, shown as `response` (never `logged`: this lab reads no product log). The lab also runs its own rules beside the reply as a comparison and applies its own failure policy when the gateway is not reached or the Gateway down tab is used; those are the lab's own computations, so they are stdout lines and not rows of a Real record. A call that got no reply (connection refused, DNS, a timeout, a dropped connection: the lab cannot tell which) is a `no-reply` stdout line, no row and no pass; the Privilege and agent gateway lanes say so.
+
+**Stdout lines.** One per event, in this shape, with every value reduced to `[A-Za-z0-9._:/@-]` and masked like the row, and none of the words a shared matcher reads (a test runs every line kind through the shared matchers for every product):
+
+```
+2026-11-22T10:00:03.250Z coding-agents-lab decision step=policy-check layer=privilege actor=claude-code result=stopped cause=secret-in-prompt mode=mock run=ev-3fa2b1-12
+```
+
+`result` is `passed`, `stopped`, `unclear` or `no-reply`; `cause` is one of the lab's own rule ids or step words; `mode` is `mock`, `live` or `real`; `run` is the run id, or `-` for a line that belongs to no run (a request the lab turned away before anything was evaluated: `step=request-check layer=lab`; or the hook run by hand). A line never carries typed text, a credential or a gateway address. In Live the gateway's decision is stamped inside the gateway route when it is made, and the hook's answer when the hook script exited.
+
+**Where these logs live and where they can stream.** They live on this lab's container stdout. The family log collector (`shared/ping-log-collector`) does not name this container in its source list, so **nothing ships them today**: they would need an entry first, and the SIEM `@timestamp` would then be Docker's wall-clock time for the line, a little after the time the lab stamped. In Real the gateway's own log of the call (and, for the hosted gateway, the Privilege SIEM index `ping-siem-events-v2`) is where the product's own view lives; this lab does not read it. Authorize has no container log and the PingOne audit reader does not exist; gateway refusal and block line shapes are unconfirmed in any gateway log. This lab has no PingFederate.
+
+**Records.** The last 5 runs of each mode are kept per workspace, so Live runs never push out Mock ones, and a run is kept when its answer is built, so the run still open is never pushed out. Run ids are unique within a running lab by a counter (across workspaces and Reset too) and across restarts by 24 random bits (probabilistic, not guaranteed). The record is answered only in the mode the run was made in (`GET /api/run-observability?mode=<mock|live|real>&runId=<id>`), so a Mock run never comes back as a Real reply after the toggle. Reset clears this workspace's run records with its audit trail and gaps. The panel shows Live runs as `simulated` (the panel's "mock" source): the hook script is a real process, but it and the gateway and the rules are all the lab's own.
+
+**Not verified.** Nothing here was run against a real gateway: the Real record was tested against an in-process fake on loopback built from the answer shapes the lab measured on 2026-11-06 (blocked, redacted, clean). Not known: the HTTP status of a real policy block, what a real refusal of the bearer looks like, whether a real completed task can carry a verdict other than the redaction marker, and whether the real gateway logs the call and the metadata it receives (`codingAgent`, the device and the developer) at all. An evaluation that ends in an error answer keeps its stdout lines and has no record: an unmapped gateway reply (HTTP 401, 403 or 5xx, a body that is not JSON, an unknown shape) or a hook script that failed; the page shows the error, not the panel. On the page, the header's Real option runs the local Live engine (the page then says Mode: live, a pre-existing behaviour this section does not change); the A2A Real path is the mode the page opens in with `CODING_AGENTS_LAB_MODE=real` and the gateway settings. In Live, two evaluations in one workspace that send the same incoming `traceparent` header (the page sends none) could swap their gateway decisions, because the decision joins its run by trace id.
 
 ## Docker (optional)
 
@@ -137,7 +168,7 @@ npm test    # server (node --test), web (vitest, drives the UI against the real 
 
 The shared checks are run by hand, because the scripts are not shipped into this repo's CI: `bash <AI-DEMO-Standalone>/scripts/check-drift.sh .`, `bash <AI-DEMO-Standalone>/scripts/check-css.sh .` and `node <demo-kit-base>/scripts/conformance.mjs . --new`. Conformance reports two rule-18 FAILs on purpose: the deferred SE k8s manifests, and a heuristic that greps for `process.env.MODE` (this lab reads `CODING_AGENTS_LAB_MODE` instead, because the shared settings file is read by every app).
 
-On Node 26: 237 tests pass (190 server, 26 web, 21 scripts). The server count includes the shared corpus tests (6 tests over 3754 leak probes and 1926 ordinary strings, run in `corpus.test.js`) and the corpus sweep (`corpus-sweep.test.js`, about two minutes: 15124 requests to a real server process).
+On Node 26: 364 tests pass (228 server, 110 web, 26 scripts). The server count includes the shared corpus tests (6 tests over 3754 leak probes and 1926 ordinary strings, run in `corpus.test.js`) and the corpus sweep (`corpus-sweep.test.js`, about two minutes: 15124 requests to a real server process).
 
 ## Troubleshooting
 

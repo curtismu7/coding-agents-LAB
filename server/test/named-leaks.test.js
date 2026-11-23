@@ -10,6 +10,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { createApp, startHttpServer } from '../src/app.js';
 import { createHealth } from '../src/health.js';
+import { createWorkspaces } from '../src/workspaces.js';
+import { silentRunLog } from './helpers.js';
 import { maskText } from '../src/mask.js';
 import { summarize } from '../src/evaluation.js';
 
@@ -26,7 +28,8 @@ function distDir() {
 async function withApp(fn) {
   const health = createHealth({ intervalMs: 3_600_000 });
   await health.ready;
-  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile: '/nonexistent/customer.config.json', webDist: distDir() }) });
+  const workspaces = createWorkspaces();
+  const { server, url } = await startHttpServer({ port: 0, host: '127.0.0.1', app: createApp({ health, configFile: '/nonexistent/customer.config.json', webDist: distDir(), workspaces, runLog: silentRunLog(workspaces) }) });
   try { await fn(url.replace(/\/$/, '')); } finally { health.stop(); await new Promise((r) => server.close(r)); }
 }
 const post = async (url, p, body, ws) => { const r = await fetch(`${url}${p}`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url, 'x-workspace': ws }, body: JSON.stringify(body) }); return { status: r.status, text: await r.text() }; };

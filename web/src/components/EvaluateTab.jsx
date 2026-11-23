@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getJson, postJson } from "../api";
 import { visible } from "../safeText";
 import { AuditTable, ChannelNote, ClaimTag, AgentDialog, Findings, Hops, HOT_ANSWER, HOT_REQUEST, Json, Verdict } from "./Bits";
+import RunObs from "./RunObs";
 
-export function ResultView({ r }) {
-  if (!r.installed) return <p className="panel" data-state="warn" data-testid="untouched">{visible(r.note)}</p>;
-  if (!r.covered) return <p className="panel" data-state="warn" data-testid="not-covered">{visible(r.note)}</p>;
+export function ResultView({ r, mode }) {
+  const runs = <RunObs mode={mode} obs={r.obs} />; // rule 27: what each layer logged for this run
+  if (!r.installed) return <><p className="panel" data-state="warn" data-testid="untouched">{visible(r.note)}</p>{runs}</>;
+  if (!r.covered) return <><p className="panel" data-state="warn" data-testid="not-covered">{visible(r.note)}</p>{runs}</>;
   return (
     <div className="stack" data-testid="result">
       <div className="cols">
@@ -35,6 +37,7 @@ export function ResultView({ r }) {
         </section>
       </div>
       <Hops hops={r.hops} traceId={r.traceId} />
+      {runs}
     </div>
   );
 }
@@ -98,7 +101,7 @@ export default function EvaluateTab({ story, mode, config, resetSignal }) {
         </details>
       </section>
       {error && <p className="field-error" role="alert" data-testid="eval-error">Could not run ({visible(error)}).</p>}
-      {res ? <ResultView r={res} /> : !error && <p className="muted">{customOn ? "Type an action and press Run." : "Loading..."}</p>}
+      {res ? <ResultView r={res} mode={mode} /> : !error && <p className="muted">{customOn ? "Type an action and press Run." : "Loading..."}</p>}
       <section className="panel">
         <AuditTable audit={audit} caption="Audit trail of this workspace: who ran what on which laptop (prompt text redacted)" />
       </section>

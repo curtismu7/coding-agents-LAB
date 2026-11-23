@@ -5,6 +5,8 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import { createApp, startHttpServer } from "../../server/src/app.js";
 import { createHealth } from "../../server/src/health.js";
+import { createRunLog } from "../../server/src/runObs.js";
+import { createWorkspaces } from "../../server/src/workspaces.js";
 import App, { BANNER_UNKNOWN, TABS } from "./App";
 import { setJsonView } from "./components/JsonPane";
 import { labelOffsets } from "./components/PatternDiagram";
@@ -20,7 +22,8 @@ beforeAll(async () => {
   savedEnv = process.env.STANDALONE_ENV; process.env.STANDALONE_ENV = path.join(os.tmpdir(), "cag-web-empty.env");
   fs.writeFileSync(process.env.STANDALONE_ENV, "");
   const health = createHealth({ runChecks: async () => [], intervalMs: 3_600_000 });
-  ({ server, url: base } = await startHttpServer({ port: 0, host: "127.0.0.1", app: createApp({ health, configFile: "/nonexistent/customer.config.json" }) }));
+  const workspaces = createWorkspaces(); // the run-observability lines (rule 27) are not what these tests are about: a silent writer keeps the test log readable
+  ({ server, url: base } = await startHttpServer({ port: 0, host: "127.0.0.1", app: createApp({ health, configFile: "/nonexistent/customer.config.json", workspaces, runLog: createRunLog({ workspaces, write: () => {} }) }) }));
   base = base.replace(/\/$/, "");
   globalThis.fetch = (u, init = {}) => realFetch(typeof u === "string" && u.startsWith("/") ? `${base}${u}` : u, { ...init, headers: { origin: base, ...(init.headers || {}) } });
 });
@@ -256,6 +259,68 @@ describe("evaluate tab, Live", () => {
     await waitFor(() => expect(screen.getByTestId("reason-code")).toHaveTextContent("ASK-UNLISTED-MCP-SERVER"), T);
     expect(screen.getByTestId("native-response").textContent).toBe(mock);
   }, 90000);
+});
+
+describe("run observability (rule 27)", () => {
+  const rowsIn = () => within(screen.getByTestId("ro-table")).getAllByRole("row").slice(1).filter((r) => r.getAttribute("data-origin") !== "not-logged"); // the lanes that hold nothing are rows too
+  it("Mock: the panel under the result shows the run's three events, simulated, in order, and a new action never shows the old run while the new one loads", async () => {
+    await evaluate0();
+    const panel = await screen.findByTestId("run-observability", {}, T);
+    expect(within(panel).getByTestId("ro-basis")).toHaveTextContent(/Simulated/);
+    await waitFor(() => expect(rowsIn()).toHaveLength(3), T);
+    expect(rowsIn().map((r) => r.getAttribute("data-layer"))).toEqual(["person", "privilege", "agent"]);
+    expect(rowsIn().every((r) => r.getAttribute("data-origin") === "simulated")).toBe(true);
+    expect(rowsIn()[1].getAttribute("data-outcome")).toBe("refused"); // the first scenario is the prompt that carries a credential
+    expect(screen.getByTestId("ro-lab-note")).toHaveTextContent(/Privilege holds the lab's own deterministic rules/);
+    expect(screen.getByTestId("ro-lanes")).toHaveTextContent(/Authorize.*Not logged/s);
+    await click("sc-benign");
+    await waitFor(() => expect(screen.getByTestId("verdict-word")).toHaveTextContent("ALLOW"), T);
+    await waitFor(() => expect(rowsIn()[1].getAttribute("data-outcome")).toBe("allowed"), T);
+  }, 90000);
+
+  it("Live: the same panel says the script, the gateway and the rules are the lab's own; a Gateway down run shows the hook's failure policy and no gateway row; Reset removes the run", async () => {
+    await mount();
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "mock"); // stays Mock until a gateway is configured (Real is disabled here)
+    await tab("Gateway down");
+    await click("gw-run");
+    await waitFor(() => expect(screen.getByTestId("gap-line")).toHaveTextContent(/Proceeded/), T);
+    await screen.findByTestId("run-observability", {}, T);
+    await waitFor(() => expect(rowsIn().map((r) => `${r.getAttribute("data-layer")}:${r.getAttribute("data-outcome")}`)).toEqual(["person:info", "agent:info"]), T);
+    expect(screen.getByTestId("ro-lanes")).toHaveTextContent(/Agent gateway.*Not logged/s);
+    await click("failclosed-toggle"); await click("gw-run");
+    await waitFor(() => expect(screen.getByTestId("gap-line")).toHaveTextContent(/Refused/), T);
+    await waitFor(() => expect(rowsIn().map((r) => r.getAttribute("data-outcome"))).toEqual(["info", "blocked"]), T);
+    await userEvent.click(screen.getByTestId("reset"));
+    await waitFor(() => expect(screen.queryByTestId("run-observability")).toBeNull(), T);
+  }, 90000);
+
+  it("a second run whose record is slow never shows the first run's record while it loads (the Gateway down result stays on screen until the new answer arrives)", async () => {
+    await mount();
+    await tab("Gateway down");
+    await click("gw-run");
+    await waitFor(() => expect(rowsIn().map((r) => r.getAttribute("data-outcome"))).toEqual(["info", "info"]), T); // fail open: the first run
+    const prior = globalThis.fetch;
+    globalThis.fetch = (u, init) => (String(u).includes("/api/run-observability") ? new Promise((r) => setTimeout(r, 2500)).then(() => prior(u, init)) : prior(u, init));
+    try {
+      await click("failclosed-toggle"); await click("gw-run");
+      await waitFor(() => expect(screen.getByTestId("gap-line")).toHaveTextContent(/Refused/), T);
+      expect(screen.getByTestId("ro-loading")).toHaveTextContent(/Collecting this run's logs/);
+      expect(screen.queryByTestId("ro-table")).toBeNull(); // not the first run's rows
+      await new Promise((r) => setTimeout(r, 1200));
+      expect(screen.queryByTestId("ro-table")).toBeNull(); // still waiting for the head of the answer
+      await waitFor(() => expect(rowsIn().map((r) => r.getAttribute("data-outcome"))).toEqual(["info", "blocked"]), T);
+    } finally { globalThis.fetch = prior; }
+  }, 90000);
+
+  it("an action that reaches no engine says so under the result and shows no record", async () => {
+    await mount();
+    await tab("Config");
+    await userEvent.click(screen.getByTestId("cfg-enabled"));
+    await tab("Evaluate");
+    expect(await screen.findByTestId("untouched", {}, T)).toBeInTheDocument();
+    expect(await screen.findByTestId("ro-no-run", {}, T)).toHaveTextContent(/No run was recorded: nothing reached the engine/);
+    expect(screen.queryByTestId("run-observability")).toBeNull();
+  }, 60000);
 });
 
 describe("gateway down tab", () => {

@@ -195,3 +195,7 @@ summary { cursor: pointer; font-weight: 700; font-size: 14px; }
 .term__foot .muted { font-size: 12px; }
 .term__speed { font-size: 13px; }
 .term--compact { font-size: 12px; }
+
+/* The run-observability panel (rule 27) sits under the result with the same gap the panels have. */
+.obs { margin: 16px 0 0; }
+.obs > .ro-muted { margin: 12px 0 0; }
