@@ -9,8 +9,9 @@
 // Honesty. Mock and Live rows are `simulated`: the lab's own engine computed them (Live runs the real hook script into the lab's own loopback gateway, but
 // that gateway and its rules are still the lab's). A Real record holds only what the lab RECEIVED from the AI Gateway (`response` rows, never `logged`: this lab
 // reads no product log). The person is always the lab's MOCK certificate subject, so in Real that lane is `not-logged`, and so are the agent (the lab simulates
-// it) and Authorize (there is none). A reply is one row, in the lane that decided: an AI Guard verdict is Privilege, an HTTP-level answer or a fault is the
-// agent gateway. The lab's own comparison rules, which Real also runs, and the hook's failure policy are the lab's own computations: they are written to stdout
+// it) and Authorize (there is none). A reply is one row, in the lane that decided: an AI Guard verdict (a completed task, or the measured block message in a JSON-RPC error)
+// is Privilege; any other JSON-RPC error is information in the agent gateway lane, because the lab cannot tell a gateway decision from a tool error. An HTTP
+// 401, 403 or 5xx has no row: it is a credential check or a fault, and the lab turns it away as unmapped. The lab's own comparison rules, which Real also runs, and the hook's failure policy are the lab's own computations: they are written to stdout
 // and are not rows of a Real record.
 //
 // Stdout line: `<iso> coding-agents-lab decision step=<step> layer=<layer> actor=<who> result=<passed|stopped|unclear|no-reply> cause=<cause> mode=<mode> run=<id>`.

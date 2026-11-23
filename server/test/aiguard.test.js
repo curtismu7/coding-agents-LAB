@@ -63,6 +63,15 @@ test('mapGatewayAnswer: the measured shapes map to deny/allow', () => {
   assert.equal(mapGatewayAnswer({ body: { jsonrpc: '2.0', id: 'x' }, status: 500 }), null);
 });
 
+test('mapGatewayAnswer: an HTTP 401, 403 or 5xx is never a policy decision, whatever its body says (a credential check or a fault)', () => {
+  const generic = { jsonrpc: '2.0', id: 'x', error: { code: -32000, message: 'something else went wrong' } };
+  for (const status of [401, 403, 500, 502, 503]) {
+    for (const body of [BLOCKED, generic]) {
+      assert.equal(mapGatewayAnswer({ body, status }), null, `HTTP ${status} with ${body === BLOCKED ? 'the block text' : 'a generic error'} maps to no decision`);
+    }
+  }
+});
+
 test('sendToAiGuard: posts A2A message/send with the bearer, never in any returned field but the call config', async () => {
   const f = envFile({ CODING_AGENTS_LAB_AIGATEWAY_URL: 'https://gw.example/a2a', CODING_AGENTS_LAB_AIGATEWAY_BEARER: 'sk-orion-test' });
   const cfg = aiGuardConfig({ STANDALONE_ENV: f });

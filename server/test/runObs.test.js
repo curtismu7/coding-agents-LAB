@@ -297,11 +297,14 @@ test('Real: a reply is one `response` row at the time the lab had it, in the lan
   }
 });
 
-test('Real: what the lab cannot map (an HTTP 401 or 403, a fault, an unreadable body, an unknown shape) is a fixed 400 with one run=- line and no record: no run id, no reply line, and never a refusal by the gateway', async () => {
+test('Real: what the lab cannot map (an HTTP 401, 403 or 5xx, even with the block text, a fault, an unreadable body, an unknown shape) is a fixed 400 with one run=- line and no record: no run id, no reply line, and never a refusal by the gateway', async () => {
   const cases = [
     ['HTTP 401', { status: 401, body: { message: 'nope' } }],
     ['HTTP 403', { status: 403, body: { message: 'nope' } }],
     ['HTTP 500', { status: 500, body: { message: 'boom' } }],
+    ['HTTP 401 that carries the policy-block text', { status: 401, body: BLOCKED }],
+    ['HTTP 403 that carries the policy-block text', { status: 403, body: BLOCKED }],
+    ['HTTP 502 that carries the policy-block text', { status: 502, body: BLOCKED }],
     ['a body that is not JSON', { body: '<html>not json</html>', type: 'text/html' }],
     ['a shape the lab does not map', { body: { hello: true } }],
   ];

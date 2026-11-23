@@ -78,6 +78,8 @@ export const eventText = (call) => String(textOf(call) ?? '').slice(0, MAX_TEXT)
 //   blocked  -> {"jsonrpc":"2.0","id":...,"error":{"code":-32600,"message":"request blocked by security policy"}}
 //   redacted -> completed, and the echoed prompt part reads "key is [REDACTED:data_exfiltration]"
 export function mapGatewayAnswer({ body, status, sentText }) {
+  // An HTTP 401 or 403 is the gateway's answer about the lab's credential, and a 5xx is a fault: neither is a policy decision, whatever the body says.
+  if (status === 401 || status === 403 || (status >= 500 && status < 600)) return null;
   if (body && body.error) {
     const msg = String(body.error.message ?? '');
     if (/blocked by security policy/i.test(msg)) {
