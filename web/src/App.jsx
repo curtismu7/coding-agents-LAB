@@ -8,6 +8,8 @@ import GatewayTab from "./components/GatewayTab";
 import ConfigTab from "./components/ConfigTab";
 import DiagramTab from "./components/DiagramTab";
 import TalkTrack from "./components/TalkTrack";
+import HelpDialog from "./help-dialog/HelpDialog";
+import { HELP_SECTIONS } from "./helpContent";
 import { getJson, resetWorkspace, setMode } from "./api";
 
 export const TABS = [
@@ -47,6 +49,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [tab, setTab] = useState(tabFromHash());
   const [presenter, setPresenter] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
   const [resetMsg, setResetMsg] = useState("");
   const [realAvailable, setRealAvailable] = useState(false);
@@ -125,7 +128,7 @@ export default function App() {
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: presenter, onToggle: () => setPresenter((v) => !v) }}
           talkTrack={{ active: tab === "talk", onToggle: () => select("talk") }}
-          help={{ href: "https://github.com/curtismu7/coding-agents-LAB#readme" }}
+          help={{ onClick: () => setHelpOpen(true), title: "What this lab is, and what is simulated" }}
           onReset={reset}
         >
           <ShelfLink />
@@ -155,6 +158,7 @@ export default function App() {
           )}
         </div>
       </main>
+      <HelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} sections={HELP_SECTIONS} docsUrl="https://github.com/curtismu7/coding-agents-LAB#readme" />
     </div>
   );
 }
